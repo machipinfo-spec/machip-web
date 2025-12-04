@@ -72,39 +72,39 @@ export async function middleware(req: NextRequest) {
 
     try {
       // ユーザーが存在するかチェックする
-      // const isUser = await createOrVerifyUser(session.idToken!);
-      // if (isUser === "unauthorized" || isUser === 'failed') {
-      //   return NextResponse.redirect(new URL("/login-prompt", req.url));
-      // }
+      const isUser = await createOrVerifyUser(session.idToken!);
+      if (isUser === "unauthorized" || isUser === 'failed') {
+        return NextResponse.redirect(new URL("/login-prompt", req.url));
+      }
 
-      // if (isUser === "undefined") {
-      //   // ユーザー作成に失敗した場合はログインプロンプトに戻す
-      //   return NextResponse.redirect(new URL("/newUser", req.url));
-      // }
+      if (isUser === "undefined") {
+        // ユーザー作成に失敗した場合はログインプロンプトに戻す
+        return NextResponse.redirect(new URL("/newUser", req.url));
+      }
 
       // ユーザーのステータスをチェックする追加のAPIコール
-      // const userStatusRes = await fetch(`${baseUrl}/user/@self/status`, {
-      //   method: "GET",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     Authorization: session.idToken!,
-      //   },
-      // });
+      const userStatusRes = await fetch(`${baseUrl}/user/@self/status`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session.idToken!,
+        },
+      });
 
-      // if (userStatusRes.ok) {
-      //   const userData = await userStatusRes.json();
+      if (userStatusRes.ok) {
+        const userData = await userStatusRes.json();
 
-      //   // ユーザーの登録が完了していない場合は新規登録画面へリダイレクト
-      //   if (!userData.isProfileComplete) {
-      //     return NextResponse.redirect(new URL("/new", req.url));
-      //   }
+        // ユーザーの登録が完了していない場合は新規登録画面へリダイレクト
+        if (!userData.isProfileComplete) {
+          return NextResponse.redirect(new URL("/new", req.url));
+        }
 
-      //   // 正常なユーザーであれば通常のフローを続行
-      //   return NextResponse.next();
-      // } else {
-      //   // ステータス取得に失敗した場合は安全のため新規登録画面へ
-      //   return NextResponse.redirect(new URL("/new", req.url));
-      // }
+        // 正常なユーザーであれば通常のフローを続行
+        return NextResponse.next();
+      } else {
+        // ステータス取得に失敗した場合は安全のため新規登録画面へ
+        return NextResponse.redirect(new URL("/new", req.url));
+      }
     } catch (error) {
       console.error("[Middleware] Error checking user status:", error);
       // エラーが発生した場合はログインプロンプトに戻す
