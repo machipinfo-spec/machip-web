@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    domains: ['msp.c.yimg.jp'],
+  },
 };
 
 export default nextConfig;
