@@ -1,4 +1,7 @@
 "use client";
+import Footer from "@/src/components/layouts/Footer/footer";
+import Header from "@/src/components/layouts/Header/header";
+import Sidebar from "@/src/components/layouts/Sidebar/Sidebar";
 import React from "react";
 
 interface LayoutContentProps {
@@ -41,7 +44,13 @@ const LayoutContent: React.FC<LayoutContentProps> = ({ children }) => {
   // }
 
   return (
-    <main className="flex-1">{children}</main>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <div className="flex flex-1 relative md:overflow-hidden">
+          <main className="flex-1">{children}</main>
+        </div>
+        <Footer />
+      </div>
   );
 };
 
