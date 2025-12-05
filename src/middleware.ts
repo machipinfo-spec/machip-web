@@ -95,15 +95,15 @@ export async function middleware(req: NextRequest) {
         const userData = await userStatusRes.json();
 
         // ユーザーの登録が完了していない場合は新規登録画面へリダイレクト
-        if (!userData.isProfileComplete) {
-          return NextResponse.redirect(new URL("/new", req.url));
-        }
+        // if (!userData.isProfileComplete) {
+        //   return NextResponse.redirect(new URL("/new", req.url));
+        // }
 
         // 正常なユーザーであれば通常のフローを続行
         return NextResponse.next();
       } else {
         // ステータス取得に失敗した場合は安全のため新規登録画面へ
-        return NextResponse.redirect(new URL("/new", req.url));
+        // return NextResponse.redirect(new URL("/new", req.url));
       }
     } catch (error) {
       console.error("[Middleware] Error checking user status:", error);
