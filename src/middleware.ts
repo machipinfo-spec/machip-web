@@ -92,7 +92,7 @@ export async function middleware(req: NextRequest) {
       });
 
       if (userStatusRes.ok) {
-        const userData = await userStatusRes.json();
+        // const userData = await userStatusRes.json();
 
         // ユーザーの登録が完了していない場合は新規登録画面へリダイレクト
         // if (!userData.isProfileComplete) {
