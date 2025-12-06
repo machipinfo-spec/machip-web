@@ -45,7 +45,7 @@ const Header: React.FC = () => {
             </li>
             <li>
               <Link 
-                href="/training" 
+                href="/map" 
                 className="text-white no-underline hover:text-blue-200 transition-colors duration-200 flex items-center gap-2"
                 title="地図"
               >
@@ -55,7 +55,7 @@ const Header: React.FC = () => {
             </li>
             <li>
               <Link 
-                href="/workout" 
+                href="/timeline" 
                 className="text-white no-underline hover:text-blue-200 transition-colors duration-200 flex items-center gap-2"
                 title="タイムライン"
               >

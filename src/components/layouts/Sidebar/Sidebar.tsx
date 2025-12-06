@@ -18,11 +18,11 @@ const Sidebar: React.FC = () => {
           プロフィール
         </SidebarMenuItem>
 
-        <SidebarMenuItem href="/training" icon={<GiNotebook />}>
+        <SidebarMenuItem href="/map" icon={<GiNotebook />}>
           地図
         </SidebarMenuItem>
 
-        <SidebarMenuItem href="/workout" icon={<MdFitnessCenter />}>
+        <SidebarMenuItem href="/timeline" icon={<MdFitnessCenter />}>
           タイムライン
         </SidebarMenuItem>
 
