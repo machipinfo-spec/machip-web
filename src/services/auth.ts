@@ -20,6 +20,14 @@ async function refreshTokens(
     console.error("COGNITO_ISSUER environment variable is not set");
     return null;
   }
+  if (!cognitoClientId) {
+    console.error("COGNITO_CLIENT_ID environment variable is not set");
+    return null;
+  }
+  if (!cognitoClientSecret) {
+    console.error("COGNITO_CLIENT_SECRET environment variable is not set");
+    return null;
+  }
 
   try {
     const baseUrl =

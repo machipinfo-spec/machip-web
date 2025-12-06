@@ -10,7 +10,7 @@ async function createOrVerifyUser(token: string): Promise<UserCheckResult> {
 
   try {
     // ユーザーの存在確認
-    const res = await fetch(`${baseUrl}/user`, {
+    const res = await fetch(`${baseUrl}/user/profile`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -21,15 +21,7 @@ async function createOrVerifyUser(token: string): Promise<UserCheckResult> {
     console.log(res.status);
 
     if (res.status === 404) {
-      // ユーザーが存在しない場合は作成
-      await fetch(`${baseUrl}/user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      });
-      return "ok";
+      return "failed";
     } else if (res.status === 401) {
       return "unauthorized";
     } else if (res.status === 200) {
@@ -74,22 +66,24 @@ export async function middleware(req: NextRequest) {
       // ユーザーが存在するかチェックする
       const isUser = await createOrVerifyUser(session.idToken!);
       if (isUser === "unauthorized" || isUser === 'failed') {
+      console.log("[Middleware] Not Found User. Redirecting to /login-prompt");
         return NextResponse.redirect(new URL("/login-prompt", req.url));
       }
 
       if (isUser === "undefined") {
         // ユーザー作成に失敗した場合はログインプロンプトに戻す
-        return NextResponse.redirect(new URL("/newUser", req.url));
+        return NextResponse.redirect(new URL("/login-prompt", req.url));
       }
 
       // ユーザーのステータスをチェックする追加のAPIコール
-      const userStatusRes = await fetch(`${baseUrl}/user/@self/status`, {
+      const userStatusRes = await fetch(`${baseUrl}/user/profile`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: session.idToken!,
         },
       });
+      console.log("User status response:", userStatusRes.status);
 
       if (userStatusRes.ok) {
         // const userData = await userStatusRes.json();
@@ -103,7 +97,8 @@ export async function middleware(req: NextRequest) {
         return NextResponse.next();
       } else {
         // ステータス取得に失敗した場合は安全のため新規登録画面へ
-        // return NextResponse.redirect(new URL("/new", req.url));
+        console.log("[Middleware] Failed to fetch user status. Redirecting to /new");
+        return NextResponse.redirect(new URL("/new-user", req.url));
       }
     } catch (error) {
       console.error("[Middleware] Error checking user status:", error);
