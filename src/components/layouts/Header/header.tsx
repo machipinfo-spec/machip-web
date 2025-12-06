@@ -11,12 +11,12 @@ const Header: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
         {/* 左側：ハンバーガーメニュー + ロゴ */}
         <div className="flex items-center gap-2">
-          <HamburgerButton className="md:hidden bg-none border-none text-2xl text-blue-600 cursor-pointer mr-3" />
+          {/* <HamburgerButton className="md:hidden bg-none border-none text-2xl text-blue-600 cursor-pointer mr-3" /> */}
           <Link
             href="/"
             className="text-xl font-bold text-white no-underline hover:text-blue-200 transition-colors duration-200"
           >
-            アドバイザー（仮）
+            にゃんこ同盟
           </Link>
         </div>
 
