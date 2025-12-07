@@ -44,14 +44,14 @@ export async function POST(request: NextRequest) {
     if (!session?.idToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const userData = await request.json();
+    const body = await request.json();
     const response = await fetch(`${apiBaseUrl}/user/profile`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: session.idToken as string,
       },
-      body: JSON.stringify(userData),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {

@@ -13,49 +13,56 @@ export async function GET() {
     }
 
     // バックエンドAPIへの呼び出し
-    const response = await fetch(`${apiBaseUrl}/user`, {
+    const response = await fetch(`${apiBaseUrl}/map`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `${session.idToken}`,
       },
     });
-
     if (!response.ok) {
-      if (response.status === 404) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
       throw new Error(`API error: ${response.status}`);
     }
 
-    const userData = await response.json();
-    return NextResponse.json(userData);
+    const responseJson = await response.json();
+    return NextResponse.json(responseJson);
   } catch (error) {
-    console.error("User API error:", error);
+    console.error("map API error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch user data" },
+      { error: "Failed to fetch map" },
       { status: 500 }
     );
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
 
     if (!session?.idToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const response = await fetch(`${apiBaseUrl}/user`, {
+    const formData = await request.formData();
+    const lat = formData.get("lat");
+    const lng = formData.get("lng");
+    const threadName = formData.get("threadName");
+    const category = formData.get("category");
+    const response = await fetch(`${apiBaseUrl}/map`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: session.idToken as string,
       },
+      body: JSON.stringify({
+        lat,
+        lng,
+        threadName,
+        category,
+      }),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to create exercise: ${response.status}`);
+      throw new Error(`Failed to create thread: ${response.status}`);
     }
 
     const createdExercise = await response.json();
