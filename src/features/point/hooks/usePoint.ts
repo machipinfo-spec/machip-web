@@ -8,6 +8,7 @@ export async function registerPoint(
   threadName?: string,
   category?: string
 ): Promise<boolean> {
+  console.log("Registering point with:", { lat, lng, threadName, category });
   if (!lat || !lng) {
     console.warn("緯度経度を入れてください。");
     return false;
@@ -19,7 +20,7 @@ export async function registerPoint(
     formData.append("lng", String(lng));
     formData.append("threadName", String(threadName));
     formData.append("category", String(category));
-    const result = await apiFetch<{ success: boolean }>("/api/points", {
+    const result = await apiFetch<{ success: boolean }>("/api/map", {
       method: "POST",
       body: formData,
     });
@@ -32,22 +33,11 @@ export async function registerPoint(
 }
 
 /** ポイント一覧取得 */
-export async function fetchPoints(userId?: string): Promise<Point[]> {
+export async function fetchPoints(): Promise<Point[]> {
   try {
-    const path = userId ? `/api/points?userId=${userId}` : "/api/points";
-    return (await apiFetch<Point[]>(path)) ?? [];
+    return (await apiFetch<Point[]>("/api/map")) ?? [];
   } catch (error) {
     console.error("Error fetching points:", error);
     return [];
-  }
-}
-
-/** 指定ポイント取得 */
-export async function fetchPoint(id: string): Promise<Point | null> {
-  try {
-    return await apiFetch<Point>(`/api/points/${id}`);
-  } catch (error) {
-    console.error("Error fetching point:", error);
-    return null;
   }
 }
