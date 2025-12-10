@@ -22,7 +22,7 @@ const Header: React.FC = () => {
         {/* 右側：ナビゲーションアイコン */}
         <nav className="flex items-center">
           <ul className="flex list-none m-0 p-0 gap-6 items-center">
-            <li>
+            {/* <li>
               <Link 
                 href="/home" 
                 className="text-white no-underline hover:text-blue-200 transition-colors duration-200 flex items-center gap-2"
@@ -31,7 +31,7 @@ const Header: React.FC = () => {
                 <FaHome className="text-xl" />
                 <span className="hidden md:inline">ホーム</span>
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link 
                 href="/map" 
@@ -39,7 +39,7 @@ const Header: React.FC = () => {
                 title="地図"
               >
                 <GiNotebook className="text-xl" />
-                <span className="hidden md:inline">地図</span>
+                <span className="hidden md:inline">マップ</span>
               </Link>
             </li>
             <li>
