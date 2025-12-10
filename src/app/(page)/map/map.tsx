@@ -10,7 +10,6 @@ import { useGeoLocation } from "@/src/features/geoLocation/hooks/useGeoLocation"
 import { fetchPoints, registerPoint } from "@/src/features/point/hooks/usePoint";
 import { Point } from "@/src/features/point/types/point";
 import { PinCreationDialog } from "@/src/features/map/components/PinCreationDialog";
-import { useImageUpload } from "@/src/features/user/hooks/useImageUpload";
 
 
 // ========== 型定義 ==========
@@ -306,7 +305,7 @@ const MapWithCustomModalMarker: React.FC<MapWithCustomModalMarkerProps> = ({ zoo
   }, [session, setPoints]);
 
   const handleMarkerClick = (marker: Point) => {
-    router.push(`/points/${marker.id}`);
+    router.push(`/timeline/${marker.id}`);
   };
 
   const renderMarker = (point: Point) => {
@@ -314,11 +313,11 @@ const MapWithCustomModalMarker: React.FC<MapWithCustomModalMarkerProps> = ({ zoo
       <CustomMarker
         key={point.id}
         position={{ lat: point.lat, lng: point.lng }}
-        // onClick={() => handleMarkerClick(point)}
+        onClick={() => handleMarkerClick(point)}
       >
         <MarkerContent 
           point={point as PointWithMetadata} 
-          // onClick={() => handleMarkerClick(point)} 
+          onClick={() => handleMarkerClick(point)} 
         />
       </CustomMarker>
     );
@@ -353,7 +352,6 @@ const MapWithCustomModalMarker: React.FC<MapWithCustomModalMarkerProps> = ({ zoo
         onConfirm={pinCreation.confirmPlacePin}
         onCancel={pinCreation.cancelPin}
       />
-      <p>Select Map Style</p>
       <GoogleMap
         mapContainerStyle={MAP_CONTAINER_STYLE}
         center={center}
