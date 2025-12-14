@@ -2,28 +2,11 @@
 "use client";
 import { FaRegComment, FaRegBookmark, FaBookmark } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-
-export interface ThreadDTO {
-  threadId: string;
-  threadName: string;
-  createdAt: string;
-  ownerUserId: string;
-  ownerUserProfile: {
-    userId: string;
-    userName: string;
-    imageUrl: string | null;
-  };
-  parentThreadId: string | null;
-  childThreadIds: string[];
-  mapPointInfoId: string | null;
-  imageUrl: string | null;
-  selectDate: string | null;
-  childThreadCount: number;
-}
+import { Thread } from "../types/Thread";
 
 interface ThreadCardProps {
-  thread: ThreadDTO;
-  onReply?: (thread: ThreadDTO) => void;
+  thread: Thread;
+  onReply?: (thread: Thread) => void;
   onImageClick?: (imageUrl: string) => void;
   isBookmarked?: boolean;
   onToggleBookmark?: (threadId: string) => void;
@@ -41,16 +24,16 @@ export const formatDate = (iso: string) => {
   if (diff < 3600) return `${Math.floor(diff / 60)}分前`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}時間前`;
   if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}日前`;
-  
+
   return d.toLocaleDateString("ja-JP", { month: "short", day: "numeric" });
 };
 
 export const formatSelectDate = (dateStr: string) => {
   const d = new Date(dateStr);
-  return d.toLocaleDateString("ja-JP", { 
-    year: "numeric", 
-    month: "long", 
-    day: "numeric" 
+  return d.toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 };
 
@@ -110,7 +93,6 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
           className={`${avatarSize} rounded-full object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0`}
         />
 
-
         {/* コンテンツ */}
         <div className="flex-1 min-w-0">
           {/* ユーザー情報 */}
@@ -121,19 +103,29 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
             >
               {thread.ownerUserProfile.userName}
             </span>
-            <span className={`text-gray-500 ${isCompact ? "text-xs" : "text-sm"}`}>
+            <span
+              className={`text-gray-500 ${isCompact ? "text-xs" : "text-sm"}`}
+            >
               · {formatDate(thread.createdAt)}
             </span>
           </div>
 
           {/* 本文 */}
-          <div className={`text-gray-900 ${textSize} leading-normal ${isCompact ? "line-clamp-2" : "whitespace-pre-wrap break-words"} mb-2`}>
+          <div
+            className={`text-gray-900 ${textSize} leading-normal ${
+              isCompact ? "line-clamp-2" : "whitespace-pre-wrap break-words"
+            } mb-2`}
+          >
             {thread.threadName}
           </div>
 
           {/* 選択日付の表示 */}
           {thread.selectDate && (
-            <div className={`mb-2 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full ${isCompact ? "text-xs" : "text-sm"} font-medium border border-blue-200`}>
+            <div
+              className={`mb-2 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full ${
+                isCompact ? "text-xs" : "text-sm"
+              } font-medium border border-blue-200`}
+            >
               <span>📅</span>
               <span>{formatSelectDate(thread.selectDate)}</span>
             </div>

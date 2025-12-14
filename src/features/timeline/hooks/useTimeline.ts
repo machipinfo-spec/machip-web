@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ThreadDTO } from "@/src/features/thread/components/ThreadCard";
+import { Thread } from "../../thread/types/Thread";
 
-export const useTimeline = (initialItems: ThreadDTO[] = []) => {
+export const useTimeline = (initialItems: Thread[] = []) => {
   const [items, setItems] = useState(initialItems);
   const [loading, setLoading] = useState(!initialItems.length);
   const [error, setError] = useState<string | null>(null);

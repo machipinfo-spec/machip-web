@@ -12,11 +12,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const body = await request.json();
+    console.log("Thread Create API body:", body);
     const response = await fetch(`${apiBaseUrl}/timeline/thread`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: session.idToken as string,
+        Authorization: session.idToken,
       },
       body: JSON.stringify(body),
     });

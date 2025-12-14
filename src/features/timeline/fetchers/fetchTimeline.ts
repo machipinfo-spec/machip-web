@@ -1,4 +1,4 @@
-import { ThreadDTO } from "@/src/features/thread/components/ThreadCard";
+import { Thread } from "../../thread/types/Thread";
 
 type FetchTimelineArgs = {
   idToken?: string;
@@ -8,7 +8,7 @@ type FetchTimelineArgs = {
 export const fetchTimeline = async ({
   idToken,
   baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
-}: FetchTimelineArgs): Promise<ThreadDTO[]> => {
+}: FetchTimelineArgs): Promise<Thread[]> => {
   const res = await fetch(`${baseUrl}/timeline`, {
     method: "GET",
     headers: {

@@ -9,11 +9,11 @@ import {
   FaTimes,
   FaImage,
 } from "react-icons/fa";
-import { ThreadDTO } from "@/src/features/thread/components/ThreadCard";
 import { useTimeline } from "@/src/features/timeline/hooks/useTimeline";
+import { Thread } from "../../thread/types/Thread";
 
 type Props = {
-  initialItems: ThreadDTO[];
+  initialItems: Thread[];
 };
 
 export default function TimelineClient({ initialItems }: Props) {
@@ -25,7 +25,7 @@ export default function TimelineClient({ initialItems }: Props) {
   );
 
   const [replyModalOpen, setReplyModalOpen] = useState(false);
-  const [replyTarget, setReplyTarget] = useState<ThreadDTO | null>(null);
+  const [replyTarget, setReplyTarget] = useState<Thread | null>(null);
   const [replyText, setReplyText] = useState("");
   const [replyImage, setReplyImage] = useState<string | null>(null);
   const [replyImageFile, setReplyImageFile] = useState<File | null>(null);
@@ -54,7 +54,7 @@ export default function TimelineClient({ initialItems }: Props) {
     });
   };
 
-  const handleReply = (thread: ThreadDTO) => {
+  const handleReply = (thread: Thread) => {
     setReplyTarget(thread);
     setReplyModalOpen(true);
     setReplyText("");
