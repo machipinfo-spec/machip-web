@@ -2,11 +2,12 @@
 "use client";
 import { useRef, useState } from "react";
 import { FaTimes, FaImage } from "react-icons/fa";
-import { formatDate, ThreadDTO } from "./ThreadCard";
+import { formatDate } from "./ThreadCard";
+import { Thread } from "../types/Thread";
 
 interface ReplyModalProps {
   isOpen: boolean;
-  replyTarget: ThreadDTO | null;
+  replyTarget: Thread | null;
   onClose: () => void;
   onSubmit: (text: string, image: string | null) => Promise<void>;
 }
@@ -114,7 +115,10 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
             </div>
           </div>
           <div className="ml-[52px] mt-2 text-sm text-gray-500">
-            返信先: <span className="text-blue-500">@{replyTarget.ownerUserProfile.userName}</span>
+            返信先:{" "}
+            <span className="text-blue-500">
+              @{replyTarget.ownerUserProfile.userName}
+            </span>
           </div>
         </div>
 

@@ -1,124 +1,62 @@
-"use client";
-import { useState } from "react";
-import { useParams } from "next/navigation";
-import { ThreadCard } from "@/src/features/thread/components/ThreadCard";
-import { ReplyModal } from "@/src/features/thread/components/ReplyModal";
-import { ImageModal } from "@/src/features/thread/components/ImageModal";
-import { ThreadSkeleton } from "@/src/features/thread/components/ThreadSkeleton";
-import { useThread, ThreadDTO } from "@/src/features/thread/hooks/useThread";
+import { Suspense } from "react";
+import { auth } from "@/src/services/auth";
+import ThreadClient from "@/src/features/thread/components/ThreadClient";
+import { Thread } from "@/src/features/thread/types/Thread";
 
-export default function ThreadPage() {
-  const params = useParams();
-  const threadId = params.threadId as string;
+export const dynamic = "force-dynamic";
 
-  const { thread, childThreads, loading, error, submitReply } =
-    useThread(threadId);
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-  const [bookmarkedThreads, setBookmarkedThreads] = useState<Set<string>>(
-    new Set()
+type PageProps = {
+  params: Promise<{
+    threadId: string;
+  }>;
+};
+
+type ThreadResponse = {
+  thread: Thread;
+  childThreads: Thread[];
+  parentThread: Thread;
+};
+
+export default async function ThreadPage({ params }: PageProps) {
+  const { threadId } = await params;
+
+  const session = await auth();
+  if (!session?.idToken) {
+    throw new Error("Unauthorized");
+  }
+
+  const res = await fetch(
+    `${apiBaseUrl}/timeline/thread?threadId=${threadId}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: session.idToken,
+      },
+      cache: "no-store",
+    }
   );
 
-  // --- モーダル関連 ---
-  const [replyModalOpen, setReplyModalOpen] = useState(false);
-  const [replyTarget, setReplyTarget] = useState<ThreadDTO | null>(null);
-  const [openImage, setOpenImage] = useState<string | null>(null);
+  if (!res.ok) {
+    throw new Error(`API error: ${res.status}`);
+  }
 
-  const handleReply = (thread: ThreadDTO) => {
-    setReplyTarget(thread);
-    setReplyModalOpen(true);
-  };
+  const data: {
+    thread: Thread;
+    childThreads: ThreadResponse[];
+  } = await res.json();
 
-  const closeReplyModal = () => {
-    setReplyModalOpen(false);
-    setReplyTarget(null);
-  };
-
-  const handleSubmitReply = async (text: string, image: string | null) => {
-    if (!replyTarget) return;
-
-    try {
-      await submitReply(replyTarget.threadId, text, image);
-      closeReplyModal();
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const toggleBookmark = (threadId: string) => {
-    setBookmarkedThreads((prev) => {
-      const set = new Set(prev);
-      set.has(threadId) ? set.delete(threadId) : set.add(threadId);
-      return set;
-    });
-  };
+  const normalizedChildThreads: Thread[] = data.childThreads.map(
+    (item) => item.thread
+  );
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-2xl mx-auto border-x border-gray-200 min-h-screen overflow-y-auto">
-        {/* --- エラー --- */}
-        {error && (
-          <div className="m-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-200">
-            {error}
-          </div>
-        )}
-
-        {/* --- ローディング --- */}
-        {loading && <ThreadSkeleton count={3} />}
-
-        {/* --- 親スレッド --- */}
-        {!loading && thread && (
-          <ThreadCard
-            thread={thread}
-            onReply={handleReply}
-            onImageClick={setOpenImage}
-            isBookmarked={bookmarkedThreads.has(thread.threadId)}
-            onToggleBookmark={toggleBookmark}
-            isCompact={false}
-          />
-        )}
-
-        {/* --- 子スレッド一覧 --- */}
-        {!loading && childThreads.length > 0 && (
-          <div className="divide-y divide-gray-200">
-            {childThreads.map((child) => (
-              <div
-                key={child.threadId}
-                className="relative pl-10" // 子スレッドを右にずらす
-              >
-                {/* 左の縦ライン（X風） */}
-                {/* <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-300" /> */}
-
-                <ThreadCard
-                  thread={child}
-                  onReply={handleReply}
-                  onImageClick={setOpenImage}
-                  isBookmarked={bookmarkedThreads.has(child.threadId)}
-                  onToggleBookmark={toggleBookmark}
-                  isCompact={true}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* --- スレッドがない場合 --- */}
-        {!loading && !thread && (
-          <div className="p-6 text-center text-gray-500">
-            スレッドが見つかりませんでした
-          </div>
-        )}
-      </div>
-
-      {/* --- 返信モーダル --- */}
-      <ReplyModal
-        isOpen={replyModalOpen}
-        replyTarget={replyTarget}
-        onClose={closeReplyModal}
-        onSubmit={handleSubmitReply}
+    <Suspense>
+      <ThreadClient
+        initialThread={data.thread}
+        initialChildThreads={normalizedChildThreads}
       />
-
-      {/* --- 画像モーダル --- */}
-      <ImageModal imageUrl={openImage} onClose={() => setOpenImage(null)} />
-    </div>
+    </Suspense>
   );
 }

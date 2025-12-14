@@ -7,14 +7,14 @@ import { ImageModal } from "@/src/features/thread/components/ImageModal";
 import { ReplyModal } from "@/src/features/thread/components/ReplyModal";
 import { ThreadCard } from "@/src/features/thread/components/ThreadCard";
 import { ThreadSkeleton } from "@/src/features/thread/components/ThreadSkeleton";
-import { ThreadDTO } from "@/src/features/thread/hooks/useThread";
+import { Thread } from "@/src/features/thread/types/Thread";
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
 
 const CalendarTimelinePage = () => {
   const [dateRange, setDateRange] = useState<Value>(null);
-  const [threads, setThreads] = useState<ThreadDTO[]>([]);
+  const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bookmarkedThreads, setBookmarkedThreads] = useState<Set<string>>(
@@ -23,7 +23,7 @@ const CalendarTimelinePage = () => {
 
   // モーダル関連
   const [replyModalOpen, setReplyModalOpen] = useState(false);
-  const [replyTarget, setReplyTarget] = useState<ThreadDTO | null>(null);
+  const [replyTarget, setReplyTarget] = useState<Thread | null>(null);
   const [openImage, setOpenImage] = useState<string | null>(null);
 
   const handleDateChange = (value: Value) => {
@@ -107,7 +107,7 @@ const CalendarTimelinePage = () => {
     setThreads([]);
   };
 
-  const handleReply = (thread: ThreadDTO) => {
+  const handleReply = (thread: Thread) => {
     setReplyTarget(thread);
     setReplyModalOpen(true);
   };

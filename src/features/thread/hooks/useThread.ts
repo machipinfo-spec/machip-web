@@ -1,98 +1,45 @@
-import { useEffect, useState } from "react";
+"use client";
 
-export interface ThreadDTO {
-  threadId: string;
-  threadName: string;
-  createdAt: string;
-  ownerUserId: string;
-  ownerUserProfile: {
-    userId: string;
-    userName: string;
-    imageUrl: string | null;
-  };
-  parentThreadId: string | null;
-  childThreadIds: string[];
-  mapPointInfoId: string | null;
-  imageUrl: string | null;
-  selectDate: string | null;
-  childThreadCount: number;
-}
+import { useState } from "react";
+import { Thread } from "../types/Thread";
 
-interface ThreadResponse {
-  thread: ThreadDTO;
-  childThreads: {
-    thread: ThreadDTO;
-    childThreads: [];
-    parentThread: ThreadDTO;
-  }[];
-  parentThread: ThreadDTO | null;
-}
-
-export const useThread = (threadId: string) => {
-  const [thread, setThread] = useState<ThreadDTO | null>(null);
-  const [childThreads, setChildThreads] = useState<ThreadDTO[]>([]);
-  const [loading, setLoading] = useState(true);
+export const useThread = (
+  initialThread: Thread | null,
+  initialChildThreads: Thread[]
+) => {
+  const [thread, setThread] = useState(initialThread);
+  const [childThreads, setChildThreads] = useState(initialChildThreads);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchThread = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch(`/api/timeline/${threadId}`);
-
-      if (!res.ok) {
-        throw new Error(`スレッド取得に失敗しました (${res.status})`);
-      }
-
-      const data: ThreadResponse = await res.json();
-
-      setThread(data.thread);
-      setChildThreads(data.childThreads.map((c) => c.thread));
-    } catch (e) {
-      console.error(e);
-      setError("スレッド情報の取得に失敗しました");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const submitReply = async (
-    replyTargetId: string,
-    text: string,
-    image: string | null
+    parentThreadId: string,
+    threadName: string,
+    imageBase64: string | null
   ) => {
-    const body = {
-      threadName: text,
-      parentThreadId: replyTargetId,
-      imageBase64: image || null,
-    };
+    console.log("Submitting reply to thread:", parentThreadId);
+    try {
+      const res = await fetch("/api/timeline/thread", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parentThreadId, threadName, imageBase64 }),
+      });
 
-    const res = await fetch("/api/timeline/thread/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+      if (!res.ok) throw new Error("failed");
 
-    if (!res.ok) {
-      throw new Error(`返信の投稿に失敗しました (${res.status})`);
+      const newThread = await res.json();
+      console.log("Reply created:", newThread);
+      setChildThreads((prev) => [newThread, ...prev]);
+    } catch {
+      setError("返信に失敗しました");
     }
-
-    await fetchThread();
   };
-
-  useEffect(() => {
-    fetchThread();
-  }, [threadId]);
 
   return {
     thread,
     childThreads,
     loading,
     error,
-    fetchThread,
     submitReply,
   };
 };
