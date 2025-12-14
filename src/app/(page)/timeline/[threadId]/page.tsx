@@ -1,47 +1,19 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { ThreadCard } from "@/src/features/thread/components/ThreadCard";
 import { ReplyModal } from "@/src/features/thread/components/ReplyModal";
 import { ImageModal } from "@/src/features/thread/components/ImageModal";
 import { ThreadSkeleton } from "@/src/features/thread/components/ThreadSkeleton";
-
-export interface ThreadDTO {
-  threadId: string;
-  threadName: string;
-  createdAt: string;
-  ownerUserId: string;
-  ownerUserProfile: {
-    userId: string;
-    userName: string;
-    imageUrl: string | null;
-  };
-  parentThreadId: string | null;
-  childThreadIds: string[];
-  mapPointInfoId: string | null;
-  imageUrl: string | null;
-  selectDate: string | null;
-  childThreadCount: number;
-}
-
-interface ThreadResponse {
-  thread: ThreadDTO;
-  childThreads: {
-    thread: ThreadDTO;
-    childThreads: [];
-    parentThread: ThreadDTO;
-  }[];
-  parentThread: ThreadDTO | null;
-}
+import { useThread, ThreadDTO } from "@/src/features/thread/hooks/useThread";
 
 export default function ThreadPage() {
   const params = useParams();
   const threadId = params.threadId as string;
 
-  const [thread, setThread] = useState<ThreadDTO | null>(null);
-  const [childThreads, setChildThreads] = useState<ThreadDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { thread, childThreads, loading, error, submitReply } =
+    useThread(threadId);
+
   const [bookmarkedThreads, setBookmarkedThreads] = useState<Set<string>>(
     new Set()
   );
@@ -50,33 +22,6 @@ export default function ThreadPage() {
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [replyTarget, setReplyTarget] = useState<ThreadDTO | null>(null);
   const [openImage, setOpenImage] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchThread();
-  }, [threadId]);
-
-  const fetchThread = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch(`/api/timeline/${threadId}`);
-
-      if (!res.ok) {
-        throw new Error(`スレッド取得に失敗しました (${res.status})`);
-      }
-
-      const data: ThreadResponse = await res.json();
-
-      setThread(data.thread);
-      setChildThreads(data.childThreads.map((c) => c.thread));
-    } catch (e) {
-      console.error(e);
-      setError("スレッド情報の取得に失敗しました");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleReply = (thread: ThreadDTO) => {
     setReplyTarget(thread);
@@ -88,29 +33,15 @@ export default function ThreadPage() {
     setReplyTarget(null);
   };
 
-  const submitReply = async (text: string, image: string | null) => {
+  const handleSubmitReply = async (text: string, image: string | null) => {
     if (!replyTarget) return;
 
-    const body = {
-      threadName: text,
-      parentThreadId: replyTarget.threadId,
-      imageBase64: image || null,
-    };
-
-    const res = await fetch("/api/timeline/thread/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      throw new Error(`返信の投稿に失敗しました (${res.status})`);
+    try {
+      await submitReply(replyTarget.threadId, text, image);
+      closeReplyModal();
+    } catch (e) {
+      console.error(e);
     }
-
-    closeReplyModal();
-    await fetchThread();
   };
 
   const toggleBookmark = (threadId: string) => {
@@ -183,7 +114,7 @@ export default function ThreadPage() {
         isOpen={replyModalOpen}
         replyTarget={replyTarget}
         onClose={closeReplyModal}
-        onSubmit={submitReply}
+        onSubmit={handleSubmitReply}
       />
 
       {/* --- 画像モーダル --- */}

@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { FaCalendarAlt } from "react-icons/fa";
-import { ThreadDTO } from "../timeline/page";
 import { ImageModal } from "@/src/features/thread/components/ImageModal";
 import { ReplyModal } from "@/src/features/thread/components/ReplyModal";
 import { ThreadCard } from "@/src/features/thread/components/ThreadCard";
 import { ThreadSkeleton } from "@/src/features/thread/components/ThreadSkeleton";
+import { ThreadDTO } from "@/src/features/thread/hooks/useThread";
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];

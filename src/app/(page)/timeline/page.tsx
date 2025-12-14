@@ -8,37 +8,16 @@ import {
   FaImage,
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-
-// getAuthToken は元のファイルからインポート
-// import { getAuthToken } from "../../../services/actions";
-
-export interface ThreadDTO {
-  threadId: string;
-  threadName: string;
-  createdAt: string;
-  ownerUserId: string;
-  ownerUserProfile: {
-    userId: string;
-    userName: string;
-    imageUrl: string | null;
-  };
-  parentThreadId: string | null;
-  childThreadIds: string[];
-  mapPointInfoId: string | null;
-  imageUrl: string | null;
-  selectDate: string | null;
-  childThreadCount: number;
-}
+import { useTimeline } from "@/src/features/timeline/hooks/useTimeline";
+import { ThreadDTO } from "@/src/features/thread/components/ThreadCard";
 
 const TimelinePage = () => {
   const router = useRouter();
-  const [items, setItems] = useState<ThreadDTO[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [openImage, setOpenImage] = useState<string | null>(null);
   const [bookmarkedThreads, setBookmarkedThreads] = useState<Set<string>>(
     new Set()
   );
+  const { items, loading, error, refetch } = useTimeline();
 
   // 返信モーダル関連
   const [replyModalOpen, setReplyModalOpen] = useState(false);
@@ -48,42 +27,6 @@ const TimelinePage = () => {
   const [replyImageFile, setReplyImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    fetchTimeline();
-  }, []);
-
-  const fetchTimeline = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // const token = await getAuthToken();
-      // if (!token) throw new Error("認証エラー: 再ログインしてください。");
-
-      const res = await fetch("/api/timeline", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          // Authorization: token,
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error(`データ取得に失敗しました (${res.status})`);
-      }
-
-      const data = await res.json();
-      setItems(data.threads);
-    } catch (err) {
-      console.error(err);
-      setError(
-        err instanceof Error ? err.message : "不明なエラーが発生しました"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
@@ -173,7 +116,7 @@ const TimelinePage = () => {
 
       // 成功したらモーダルを閉じてタイムラインを更新
       closeReplyModal();
-      await fetchTimeline();
+      await refetch();
     } catch (err) {
       console.error(err);
       alert(err instanceof Error ? err.message : "返信の投稿に失敗しました");
