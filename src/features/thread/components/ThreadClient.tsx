@@ -1,27 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ThreadCard } from "@/src/features/thread/components/ThreadCard";
 import { ReplyModal } from "@/src/features/thread/components/ReplyModal";
 import { ImageModal } from "@/src/features/thread/components/ImageModal";
-import { ThreadSkeleton } from "@/src/features/thread/components/ThreadSkeleton";
 import { useThread } from "@/src/features/thread/hooks/useThread";
 import { Thread } from "../types/Thread";
 
 type Props = {
   initialThread: Thread | null;
   initialChildThreads: Thread[];
+  ownUserId: string | null;
 };
 
 export default function ThreadClient({
   initialThread,
   initialChildThreads,
+  ownUserId,
 }: Props) {
-  const { thread, childThreads, loading, error, submitReply } = useThread(
-    initialThread,
-    initialChildThreads
-  );
-  console.log("ThreadClient render:", { childThreads });
+  const router = useRouter();
+  const { thread, childThreads, loading, error, submitReply, deleteThread } =
+    useThread(initialThread, initialChildThreads);
   const [bookmarkedThreads, setBookmarkedThreads] = useState<Set<string>>(
     new Set()
   );
@@ -37,7 +37,6 @@ export default function ThreadClient({
 
   const handleSubmitReply = async (text: string, image: string | null) => {
     if (!replyTarget) return;
-    console.log("Replying to thread:", replyTarget.threadId);
     await submitReply(replyTarget.threadId, text, image);
     setReplyModalOpen(false);
     setReplyTarget(null);
@@ -49,6 +48,18 @@ export default function ThreadClient({
       set.has(threadId) ? set.delete(threadId) : set.add(threadId);
       return set;
     });
+  };
+
+  const handleDeleted = async (threadId: string) => {
+    console.log("Thread deleted:", threadId);
+
+    // メインスレッドが削除された場合は/timelineに戻る
+    if (thread && thread.threadId === threadId) {
+      router.push("/timeline");
+    } else {
+      // 子スレッドが削除された場合はローカルステートから削除
+      await deleteThread(threadId);
+    }
   };
 
   return (
@@ -70,6 +81,11 @@ export default function ThreadClient({
             isBookmarked={bookmarkedThreads.has(thread.threadId)}
             onToggleBookmark={toggleBookmark}
             isCompact={false}
+            currentUserId={ownUserId}
+            onDeleted={handleDeleted}
+            onReport={() => {
+              console.log("Reported thread:", thread.threadId);
+            }}
           />
         )}
 
@@ -84,6 +100,11 @@ export default function ThreadClient({
                   isBookmarked={bookmarkedThreads.has(child.threadId)}
                   onToggleBookmark={toggleBookmark}
                   isCompact
+                  currentUserId={ownUserId}
+                  onReport={() => {
+                    console.log("Reported thread:", child.threadId);
+                  }}
+                  onDeleted={handleDeleted}
                 />
               </div>
             ))}
