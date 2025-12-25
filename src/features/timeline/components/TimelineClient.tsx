@@ -110,7 +110,7 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
               onImageClick={setOpenImage}
               isBookmarked={bookmarkedThreads.has(thread.threadId)}
               onToggleBookmark={toggleBookmark}
-              isCompact={false}
+              isCompact={true}
               currentUserId={ownUserId}
               onDeleted={handleDeleted}
               onReport={() => handleReport(thread.threadId)}
