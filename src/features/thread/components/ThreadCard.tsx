@@ -1,6 +1,8 @@
 // components/thread/ThreadCard.tsx
 "use client";
+
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import {
   FaRegComment,
   FaRegBookmark,
@@ -19,10 +21,12 @@ interface ThreadCardProps {
   isCompact?: boolean;
   isChild?: boolean;
   showActions?: boolean;
-  onDeleted?: (threadId: string) => void; // 削除完了通知用
+  onDeleted?: (threadId: string) => void;
   onReport: (threadId: string) => void;
-  currentUserId: string | null; // 現在のユーザーID
+  currentUserId: string | null;
 }
+
+/* ---------------- utils ---------------- */
 
 export const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -46,6 +50,8 @@ export const formatSelectDate = (dateStr: string) => {
   });
 };
 
+/* ---------------- component ---------------- */
+
 export const ThreadCard: React.FC<ThreadCardProps> = ({
   thread,
   onReply,
@@ -65,7 +71,8 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isOwnThread = currentUserId === thread.ownerUserId;
-  // メニュー外クリックで閉じる
+
+  /* メニュー外クリックで閉じる */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -81,6 +88,8 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showMenu]);
+
+  /* handlers */
 
   const navigateToProfile = (userId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -108,32 +117,25 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
 
   const handleMenuToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowMenu(!showMenu);
+    setShowMenu((v) => !v);
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowMenu(false);
 
-    if (!window.confirm("この投稿を削除しますか?")) {
-      return;
-    }
+    if (!window.confirm("この投稿を削除しますか?")) return;
 
     setIsDeleting(true);
 
     try {
       const res = await fetch(
         `/api/timeline/thread?threadId=${thread.threadId}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" }
       );
 
-      if (!res.ok) {
-        throw new Error("削除に失敗しました");
-      }
+      if (!res.ok) throw new Error("削除に失敗しました");
 
-      // 親コンポーネントに削除完了を通知
       onDeleted?.(thread.threadId);
     } catch (error) {
       console.error("Delete error:", error);
@@ -146,14 +148,14 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
   const handleReport = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowMenu(false);
-    onReport?.(thread.threadId);
+    onReport(thread.threadId);
   };
+
+  /* styles */
 
   const avatarSize = isCompact ? "w-10 h-10" : "w-12 h-12";
   const textSize = isCompact ? "text-sm" : "text-[15px]";
   const nameSize = isCompact ? "text-sm" : "";
-
-  // 削除中の場合は透明度を下げる
   const cardOpacity = isDeleting ? "opacity-50 pointer-events-none" : "";
 
   return (
@@ -164,17 +166,21 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
       } ${cardOpacity}`}
     >
       <div className="flex gap-3">
-        {/* アイコン */}
-        <img
+        {/* -------- Avatar -------- */}
+        <Image
           src={thread.ownerUserProfile.imageUrl ?? "/default-user.png"}
           alt={thread.ownerUserProfile.userName}
+          width={isCompact ? 40 : 48}
+          height={isCompact ? 40 : 48}
+          priority
+          unoptimized
           onClick={(e) => navigateToProfile(thread.ownerUserId, e)}
           className={`${avatarSize} rounded-full object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0`}
         />
 
-        {/* コンテンツ */}
+        {/* -------- Content -------- */}
         <div className="flex-1 min-w-0">
-          {/* ユーザー情報と三点リーダー */}
+          {/* header */}
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <span
@@ -190,7 +196,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
               </span>
             </div>
 
-            {/* 三点リーダーメニュー */}
+            {/* menu */}
             <div className="relative" ref={menuRef}>
               <button
                 onClick={handleMenuToggle}
@@ -222,7 +228,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
             </div>
           </div>
 
-          {/* 本文 */}
+          {/* body */}
           <div
             className={`text-gray-900 ${textSize} leading-normal ${
               isCompact ? "line-clamp-2" : "whitespace-pre-wrap break-words"
@@ -231,7 +237,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
             {thread.threadName}
           </div>
 
-          {/* 選択日付の表示 */}
+          {/* select date */}
           {thread.selectDate && (
             <div
               className={`mb-2 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full ${
@@ -243,20 +249,24 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
             </div>
           )}
 
-          {/* 画像 */}
+          {/* image */}
           {thread.imageUrl && (
-            <div className="mt-3 mb-2">
-              <img
+            <div className="relative mt-3 mb-2 w-9/12">
+              <Image
                 src={thread.imageUrl}
                 alt="投稿画像"
+                width={800}
+                height={600}
+                unoptimized
                 onClick={onImageClick ? handleImageClick : undefined}
-                className={`rounded-2xl w-9/12 object-cover border border-gray-200 ${
+                className={`rounded-2xl object-cover border border-gray-200 ${
                   onImageClick ? "cursor-pointer hover:opacity-95" : ""
                 } ${isCompact ? "max-h-32 rounded-lg" : "max-h-96"} transition`}
               />
             </div>
           )}
-          {/* 📍 アドレス表示 */}
+
+          {/* address */}
           {thread.address && (
             <div
               className={`flex items-center gap-1 mb-2 text-gray-500 ${
@@ -268,10 +278,9 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
             </div>
           )}
 
-          {/* アクションボタン */}
+          {/* actions */}
           {showActions && (
             <div className="flex items-center gap-6 mt-3 text-gray-500">
-              {/* リプライボタン */}
               {onReply && (
                 <button
                   onClick={handleReply}
@@ -286,7 +295,6 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
                 </button>
               )}
 
-              {/* リプライ数のみ表示(ボタンなし) */}
               {!onReply && thread.childThreadCount > 0 && (
                 <div className="flex items-center gap-2 text-gray-500">
                   <div className="p-2">
@@ -296,7 +304,6 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
                 </div>
               )}
 
-              {/* ブックマークボタン */}
               {onToggleBookmark && (
                 <button
                   onClick={handleBookmark}
