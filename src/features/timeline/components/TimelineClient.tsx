@@ -4,6 +4,8 @@ import { useState } from "react";
 import { ThreadCard } from "@/src/features/thread/components/ThreadCard";
 import { ReplyModal } from "@/src/features/thread/components/ReplyModal";
 import { ImageModal } from "@/src/features/thread/components/ImageModal";
+import { CreateThreadModal } from "./CreateThreadModal";
+import { FaPlus } from "react-icons/fa";
 import { useTimeline } from "@/src/features/timeline/hooks/useTimeline";
 import { Thread } from "../../thread/types/Thread";
 
@@ -21,6 +23,7 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
 
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [replyTarget, setReplyTarget] = useState<Thread | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const handleReply = (thread: Thread) => {
     setReplyTarget(thread);
@@ -56,6 +59,34 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
     } catch (err) {
       console.error(err);
       alert(err instanceof Error ? err.message : "返信の投稿に失敗しました");
+      throw err;
+    }
+  };
+
+  const handleSubmitThread = async (text: string, image: string | null) => {
+    try {
+      const body = {
+        threadName: text,
+        imageBase64: image,
+      };
+
+      const res = await fetch("/api/timeline/thread/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        throw new Error(`投稿に失敗しました (${res.status})`);
+      }
+
+      setCreateModalOpen(false);
+      await refetch();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "投稿に失敗しました");
       throw err;
     }
   };
@@ -132,6 +163,22 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
 
       {/* 画像モーダル */}
       <ImageModal imageUrl={openImage} onClose={() => setOpenImage(null)} />
+
+      {/* 新規投稿モーダル */}
+      <CreateThreadModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSubmit={handleSubmitThread}
+      />
+
+      {/* 新規投稿ボタン (FAB) */}
+      <button
+        onClick={() => setCreateModalOpen(true)}
+        className="fixed bottom-8 right-8 p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-transform hover:scale-110 z-30"
+        aria-label="新規投稿"
+      >
+        <FaPlus className="w-6 h-6" />
+      </button>
     </div>
   );
 }
