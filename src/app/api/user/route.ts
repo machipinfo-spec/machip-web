@@ -8,22 +8,25 @@ export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.idToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // if (!session?.idToken) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     // バックエンドAPIへの呼び出し
     const response = await fetch(`${apiBaseUrl}/user`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `${session.idToken}`,
+        Authorization: `${session?.idToken}`,
       },
     });
 
     if (!response.ok) {
       if (response.status === 404) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      if (response.status === 401) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
       throw new Error(`API error: ${response.status}`);
     }
@@ -61,9 +64,6 @@ export async function POST() {
     const createdExercise = await response.json();
     return NextResponse.json(createdExercise);
   } catch (error) {
-    return NextResponse.json(
-      { error: error },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 }

@@ -109,9 +109,6 @@ const SketchThreadList = () => {
 
         const startDateStr = startDate.toISOString();
         const endDateStr = endDate.toISOString();
-
-        console.log("Fetching threads from", startDateStr, "to", endDateStr);
-
         const res = await fetch(
           `/api/timeline/query?startDate=${startDateStr}&endDate=${endDateStr}&limit=20`,
           {
@@ -166,11 +163,7 @@ const SketchThreadList = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
             {threads.map((thread, index) => (
-              <ThreadCard
-                key={thread.threadId}
-                thread={thread}
-                index={index}
-              />
+              <ThreadCard key={thread.threadId} thread={thread} index={index} />
             ))}
           </div>
         )}

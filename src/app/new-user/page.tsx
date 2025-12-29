@@ -8,6 +8,12 @@ import { ProfileImageUpload } from "@/src/features/user/components/ProfileImageU
 import { SuccessToast } from "@/src/features/user/components/SuccessToast";
 import { useImageUpload } from "@/src/features/user/hooks/useImageUpload";
 
+interface UserData {
+  nickname: string;
+  bio: string;
+  url: string;
+}
+
 const NewUserPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,9 +23,10 @@ const NewUserPage = () => {
   const { imagePreview, handleImageChange, handleImageRemove, getImageBase64 } =
     useImageUpload();
 
-  const [userData, setUserData] = useState({
+  const [userData, setUserData] = useState<UserData>({
     nickname: "",
     bio: "",
+    url: "",
   });
 
   useEffect(() => {
@@ -27,6 +34,15 @@ const NewUserPage = () => {
   }, []);
 
   const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setUserData({
+      ...userData,
+      [name]: value,
+    });
+  };
+  const handleUrlChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
@@ -75,6 +91,7 @@ const NewUserPage = () => {
           userName: userData.nickname,
           imageBase64: imageBase64,
           introduction: userData.bio,
+          url: userData.url,
         }),
       });
 
@@ -144,6 +161,13 @@ const NewUserPage = () => {
                     />
                   </svg>
                 }
+              />
+              <FormInput
+                label="URL"
+                name="url"
+                value={userData.url}
+                onChange={handleUrlChange}
+                placeholder=""
               />
 
               <FormTextarea

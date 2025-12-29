@@ -169,7 +169,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
         {/* -------- Avatar -------- */}
         <Image
           src={thread.ownerUserProfile.imageUrl ?? "/default-user.png"}
-          alt={thread.ownerUserProfile.userName}
+          alt="Description of the image" // Required
           width={isCompact ? 40 : 48}
           height={isCompact ? 40 : 48}
           priority

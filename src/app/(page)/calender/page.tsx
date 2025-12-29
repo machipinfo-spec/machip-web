@@ -9,6 +9,10 @@ import { ThreadCard } from "@/src/features/thread/components/ThreadCard";
 import { ThreadSkeleton } from "@/src/features/thread/components/ThreadSkeleton";
 import { Thread } from "@/src/features/thread/types/Thread";
 import { useThread } from "@/src/features/thread/hooks/useThread";
+import {
+  LoginMode,
+  useLoginMode,
+} from "@/src/features/user/hooks/useLoginMode";
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
@@ -28,6 +32,7 @@ const CalendarTimelinePage = () => {
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [replyTarget, setReplyTarget] = useState<Thread | null>(null);
   const [openImage, setOpenImage] = useState<string | null>(null);
+  const { getLoginMode } = useLoginMode();
 
   const handleDateChange = (value: Value) => {
     setDateRange(value);
@@ -85,7 +90,10 @@ const CalendarTimelinePage = () => {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await fetchUserId();
+      const loginMode = await getLoginMode();
+      if (loginMode === LoginMode.LOGIN) {
+        await fetchUserId();
+      }
       if (dateRange) {
         await loadThreads();
       }

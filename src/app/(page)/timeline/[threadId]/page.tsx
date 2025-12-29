@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { auth } from "@/src/services/auth";
 import ThreadClient from "@/src/features/thread/components/ThreadClient";
 import { Thread } from "@/src/features/thread/types/Thread";
+import { fetchUser } from "@/src/features/user/fetchers/fetchUser";
 
 export const dynamic = "force-dynamic";
 
@@ -24,16 +25,12 @@ export default async function ThreadPage({ params }: PageProps) {
   const { threadId } = await params;
 
   const session = await auth();
-  if (!session?.idToken) {
-    throw new Error("Unauthorized");
-  }
-
   const res = await fetch(
     `${apiBaseUrl}/timeline/thread?threadId=${threadId}`,
     {
       headers: {
         "Content-Type": "application/json",
-        Authorization: session.idToken,
+        ...(session?.idToken ? { Authorization: session.idToken } : {}),
       },
       cache: "no-store",
     }
@@ -54,19 +51,18 @@ export default async function ThreadPage({ params }: PageProps) {
     );
   }
 
-  // =========================
-  // その他のエラーは異常
-  // =========================
-  if (!res.ok) {
-    throw new Error(`Failed to fetch thread: ${res.status}`);
+  // // =========================
+  // // その他のエラーは異常
+  // // =========================
+  // if (!res.ok) {
+  //   throw new Error(`Failed to fetch thread: ${res.status}`);
+  // }
+  let userResponse;
+  if (session?.idToken) {
+    userResponse = await fetchUser({
+      idToken: session?.idToken,
+    });
   }
-  const userResponse = await fetch(`${apiBaseUrl}/user`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: session.idToken,
-    },
-    cache: "no-store",
-  });
 
   // =========================
   // 正常系のみ JSON を読む
@@ -75,8 +71,6 @@ export default async function ThreadPage({ params }: PageProps) {
     thread: Thread;
     childThreads: ThreadResponse[];
   } = await res.json();
-
-  const user = await userResponse.json();
 
   const normalizedChildThreads: Thread[] = data.childThreads.map(
     (item) => item.thread
@@ -87,7 +81,7 @@ export default async function ThreadPage({ params }: PageProps) {
       <ThreadClient
         initialThread={data.thread}
         initialChildThreads={normalizedChildThreads}
-        ownUserId={user.userId}
+        ownUserId={userResponse?.userId || null}
       />
     </Suspense>
   );

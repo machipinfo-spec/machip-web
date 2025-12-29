@@ -5,7 +5,7 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export type UserCheckResult = "ok" | "unauthorized" | "undefined" | "failed";
 
-async function getProfile(token: string): Promise<UserCheckResult> {
+async function createOrVerifyUser(token: string): Promise<UserCheckResult> {
   if (!token) return "unauthorized";
 
   try {
@@ -17,7 +17,11 @@ async function getProfile(token: string): Promise<UserCheckResult> {
         Authorization: token,
       },
     });
-    if (res.status === 200) {
+    if (res.status === 404) {
+      return "failed";
+    } else if (res.status === 401) {
+      return "unauthorized";
+    } else if (res.status === 200) {
       return "ok";
     } else {
       console.error("Error checking user:", res.status, res.statusText);
@@ -46,6 +50,8 @@ export async function middleware(req: NextRequest) {
       console.log(
         "[Middleware] No session found. Redirecting to /login-prompt"
       );
+      // return NextResponse.redirect(new URL("/login-prompt", req.url));
+
       // guest mode
       return NextResponse.next();
     }
@@ -59,14 +65,51 @@ export async function middleware(req: NextRequest) {
 
     try {
       // ユーザーが存在するかチェックする
-      const isUser = await getProfile(session.idToken!);
-      if (isUser === "failed") {
+      const isUser = await createOrVerifyUser(session.idToken!);
+      if (isUser === "unauthorized") {
         console.log(
           "[Middleware] Not Found User or Unauthorized. Redirecting to /login-prompt"
         );
+        return NextResponse.redirect(new URL("/login-prompt", req.url));
+      }
+      if (isUser === "failed") {
+        console.log(
+          "[Middleware] Failed to check user. Redirecting to /login-prompt"
+        );
         return NextResponse.redirect(new URL("/new-user", req.url));
       }
-      return NextResponse.next();
+
+      if (isUser === "undefined") {
+        // ユーザー作成に失敗した場合はログインプロンプトに戻す
+        return NextResponse.redirect(new URL("/login-prompt", req.url));
+      }
+
+      const userStatusRes = await fetch(`${baseUrl}/user/profile/@self`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session.idToken!,
+        },
+      });
+      console.log("User status response:", userStatusRes.status);
+
+      if (userStatusRes.ok) {
+        // const userData = await userStatusRes.json();
+
+        // ユーザーの登録が完了していない場合は新規登録画面へリダイレクト
+        // if (!userData.isProfileComplete) {
+        //   return NextResponse.redirect(new URL("/new", req.url));
+        // }
+
+        // 正常なユーザーであれば通常のフローを続行
+        return NextResponse.next();
+      } else {
+        // ステータス取得に失敗した場合は安全のため新規登録画面へ
+        console.log(
+          "[Middleware] Failed to fetch user status. Redirecting to /new"
+        );
+        return NextResponse.redirect(new URL("/new-user", req.url));
+      }
     } catch (error) {
       console.error("[Middleware] Error checking user status:", error);
       // エラーが発生した場合はログインプロンプトに戻す

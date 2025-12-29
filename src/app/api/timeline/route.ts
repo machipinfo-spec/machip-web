@@ -8,16 +8,12 @@ export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.idToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // バックエンドAPIへの呼び出し
     const response = await fetch(`${apiBaseUrl}/timeline`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `${session.idToken}`,
+        Authorization: `${session?.idToken}`,
       },
     });
     if (!response.ok) {
@@ -27,9 +23,6 @@ export async function GET() {
     return NextResponse.json(responseJson);
   } catch (error) {
     console.error("map API error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch map" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch map" }, { status: 500 });
   }
 }

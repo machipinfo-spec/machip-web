@@ -8,9 +8,9 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session?.idToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // if (!session?.idToken) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
     // クエリ取得
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get("startDate");
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: session.idToken as string,
+        Authorization: `${session?.idToken}`,
       },
     });
 

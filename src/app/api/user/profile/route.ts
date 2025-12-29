@@ -12,13 +12,12 @@ export async function PUT(request: NextRequest) {
     }
 
     const userData = await request.json();
-
     // バックエンドAPIへの呼び出し
     const response = await fetch(`${apiBaseUrl}/user/profile`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${session.idToken}`,
+        Authorization: session.idToken,
       },
       body: JSON.stringify(userData),
     });

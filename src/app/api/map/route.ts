@@ -9,16 +9,16 @@ export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.idToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // if (!session?.idToken) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     // バックエンドAPIへの呼び出し
     const response = await fetch(`${apiBaseUrl}/map`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `${session.idToken}`,
+        Authorization: `${session?.idToken}`,
       },
     });
     if (!response.ok) {

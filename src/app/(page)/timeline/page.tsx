@@ -9,24 +9,23 @@ export const dynamic = "force-dynamic";
 export default async function TimelinePage() {
   const session = await auth();
 
-  if (!session?.idToken) {
-    throw new Error("Unauthorized");
+  let userResponse;
+  if (session?.idToken) {
+    userResponse = await fetchUser({
+      idToken: session?.idToken,
+    });
   }
-
-  const userResponse = await fetchUser({
-    idToken: session.idToken,
-  });
 
   // 👇 通信ロジックは useTimeline と同じ fetcher を使う
   const initialItems = await fetchTimeline({
-    idToken: session.idToken,
+    idToken: session?.idToken,
   });
 
   return (
     <Suspense>
       <TimelineClient
         initialItems={initialItems}
-        ownUserId={userResponse.userId || null}
+        ownUserId={userResponse?.userId || null}
       />
     </Suspense>
   );
