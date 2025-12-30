@@ -72,7 +72,6 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
   };
 
   const handleDeleted = async (threadId: string) => {
-    console.log("Thread deleted:", threadId);
     // 削除完了後にタイムラインをリフレッシュ
     await refetch();
   };

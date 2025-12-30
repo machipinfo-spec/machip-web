@@ -57,7 +57,6 @@ export const useThread = (
   };
 
   const deleteThread = async (threadId: string) => {
-    console.log("Deleting thread with ID:", threadId);
     try {
       const res = await fetch(`/api/timeline/thread?threadId=${threadId}`, {
         method: "DELETE",

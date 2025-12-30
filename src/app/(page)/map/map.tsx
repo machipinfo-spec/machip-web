@@ -18,6 +18,12 @@ import {
 import { Point } from "@/src/features/point/types/point";
 import { PinCreationDialog } from "@/src/features/map/components/PinCreationDialog";
 import { MarkerDetailDialog } from "@/src/features/map/components/MarkerDetailDialog";
+import { SignUpPromptDialog } from "@/src/features/user/components/SignUpPromptDialog";
+import { useSignUpPrompt } from "@/src/features/user/hooks/useSignUpPrompt";
+import {
+  useLoginMode,
+  LoginMode,
+} from "@/src/features/user/hooks/useLoginMode";
 
 /* =======================
    型定義
@@ -75,7 +81,11 @@ const useMapState = () => {
 /* =======================
    Pin creation hook
 ======================= */
-const usePinCreation = (setPoints: (p: Point[]) => void) => {
+const usePinCreation = (
+  setPoints: (p: Point[]) => void,
+  getLoginMode: () => Promise<LoginMode>,
+  onGuestAction: () => void
+) => {
   const [pinModalOpen, setPinModalOpen] = useState(false);
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
   const [threadName, setThreadName] = useState("");
@@ -86,6 +96,13 @@ const usePinCreation = (setPoints: (p: Point[]) => void) => {
 
   const handleMapClick = async (e: google.maps.MapMouseEvent) => {
     if (!e.latLng) return;
+
+    // Check if user is guest
+    const mode = await getLoginMode();
+    if (mode === LoginMode.GUEST) {
+      onGuestAction();
+      return;
+    }
 
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
@@ -166,7 +183,12 @@ const MapWithCustomModalMarker: React.FC<MapWithCustomModalMarkerProps> = ({
   const router = useRouter();
   const { data: session } = useSession();
   const { center, pointList, setPoints } = useMapState();
-  const pinCreation = usePinCreation(setPoints);
+
+  // Sign-up prompt dialog
+  const { isOpen, openDialog, closeDialog } = useSignUpPrompt();
+  const { getLoginMode } = useLoginMode();
+
+  const pinCreation = usePinCreation(setPoints, getLoginMode, openDialog);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [pinDetailModalOpen, setPinDetailModalOpen] = useState(false);
 
@@ -174,7 +196,8 @@ const MapWithCustomModalMarker: React.FC<MapWithCustomModalMarkerProps> = ({
     fetchPoints().then(setPoints);
   }, [session, setPoints]);
 
-  if (!session || !isLoaded) return null;
+  // Only check if Google Maps is loaded, allow guest users to view the map
+  if (!isLoaded) return null;
 
   return (
     <>
@@ -234,6 +257,14 @@ const MapWithCustomModalMarker: React.FC<MapWithCustomModalMarkerProps> = ({
           }}
         />
       </GoogleMap>
+
+      {/* Sign-up prompt dialog for guest users */}
+      <SignUpPromptDialog
+        isOpen={isOpen}
+        onClose={closeDialog}
+        title="ピンを作成するにはアカウントが必要です"
+        message="アカウントを作成すると、マップ上にお気に入りの場所をピン留めしたり、新しいスレッドを開始したりできるようになります。"
+      />
     </>
   );
 };

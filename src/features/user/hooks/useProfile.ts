@@ -7,6 +7,7 @@ export interface UserProfile {
   userName: string;
   imageUrl: string;
   introduction: string;
+  url: string;
 }
 
 export function useProfile(userId?: string) {
@@ -41,7 +42,9 @@ export function useProfile(userId?: string) {
         setIsOwnProfile(!userId || selfData.profileId === profile.profileId);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "プロフィールの取得に失敗しました");
+      setError(
+        e instanceof Error ? e.message : "プロフィールの取得に失敗しました"
+      );
     } finally {
       setIsFetching(false);
     }
@@ -51,9 +54,14 @@ export function useProfile(userId?: string) {
    * プロフィール更新
    */
   const updateProfile = useCallback(
-    async (params: { nickname: string; bio: string; imageBase64: string | null }) => {
+    async (params: {
+      nickname: string;
+      bio: string;
+      imageBase64: string | null;
+      url: string | null;
+    }) => {
       try {
-        const { nickname, bio, imageBase64 } = params;
+        const { nickname, bio, imageBase64, url } = params;
 
         if (!nickname.trim()) {
           throw new Error("ニックネームを入力してください");
@@ -67,7 +75,8 @@ export function useProfile(userId?: string) {
           body: JSON.stringify({
             userName: nickname,
             introduction: bio,
-            imageBase64,
+            imageBase64: imageBase64,
+            url: url,
           }),
         });
 
@@ -79,12 +88,21 @@ export function useProfile(userId?: string) {
         await fetchProfile();
         return true;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "更新中にエラーが発生しました");
+        setError(
+          e instanceof Error ? e.message : "更新中にエラーが発生しました"
+        );
         return false;
       }
     },
     [fetchProfile]
   );
+
+  const clearProfile = useCallback(() => {
+    setData(null);
+    setIsFetching(false);
+    setIsOwnProfile(false);
+    setError(null);
+  }, []);
 
   return {
     data,
@@ -94,5 +112,6 @@ export function useProfile(userId?: string) {
     fetchProfile,
     updateProfile,
     setError,
+    clearProfile,
   };
 }

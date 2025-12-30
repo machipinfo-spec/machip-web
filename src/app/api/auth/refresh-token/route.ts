@@ -54,7 +54,6 @@ async function refreshAccessToken({
 }
 
 export async function POST(req: NextRequest) {
-  console.log('refresh token post');
   try {
     const body = await req.json();
 

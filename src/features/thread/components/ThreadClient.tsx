@@ -51,8 +51,6 @@ export default function ThreadClient({
   };
 
   const handleDeleted = async (threadId: string) => {
-    console.log("Thread deleted:", threadId);
-
     // メインスレッドが削除された場合は/timelineに戻る
     if (thread && thread.threadId === threadId) {
       router.push("/timeline");

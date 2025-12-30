@@ -42,6 +42,7 @@ const ProfilePage: React.FC = () => {
   const [userData, setUserData] = useState({
     nickname: "",
     bio: "",
+    url: "",
   });
 
   // プロフィール取得: 初回 & userId変更時
@@ -56,6 +57,7 @@ const ProfilePage: React.FC = () => {
       setUserData({
         nickname: data.userName,
         bio: data.introduction,
+        url: data.url,
       });
       if (data.imageUrl) setInitialPreview(data.imageUrl);
       else setInitialPreview(null);
@@ -82,11 +84,12 @@ const ProfilePage: React.FC = () => {
       setUserData({
         nickname: data.userName,
         bio: data.introduction,
+        url: data.url,
       });
       if (data.imageUrl) setInitialPreview(data.imageUrl);
       else setInitialPreview(null);
     } else {
-      setUserData({ nickname: "", bio: "" });
+      setUserData({ nickname: "", bio: "", url: "" });
       setInitialPreview(null);
     }
   };
@@ -107,6 +110,7 @@ const ProfilePage: React.FC = () => {
         nickname: userData.nickname,
         bio: userData.bio,
         imageBase64,
+        url: userData.url,
       });
 
       if (!success) {
@@ -187,6 +191,14 @@ const ProfilePage: React.FC = () => {
                     </svg>
                   ) : undefined
                 }
+              />
+              <FormInput
+                label="URL"
+                name="url"
+                value={userData.url}
+                onChange={handleChange}
+                placeholder=""
+                disabled={!isEditing}
               />
 
               <FormTextarea
