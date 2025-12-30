@@ -11,6 +11,12 @@ import {
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { Thread } from "../types/Thread";
+import { SignUpPromptDialog } from "@/src/features/user/components/SignUpPromptDialog";
+import { useSignUpPrompt } from "@/src/features/user/hooks/useSignUpPrompt";
+import {
+  useLoginMode,
+  LoginMode,
+} from "@/src/features/user/hooks/useLoginMode";
 
 interface ThreadCardProps {
   thread: Thread;
@@ -70,6 +76,10 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Sign-up prompt dialog
+  const { isOpen, openDialog, closeDialog } = useSignUpPrompt();
+  const { getLoginMode } = useLoginMode();
+
   const isOwnThread = currentUserId === thread.ownerUserId;
 
   /* メニュー外クリックで閉じる */
@@ -100,8 +110,18 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
     router.push(`/timeline/${thread.threadId}`);
   };
 
-  const handleReply = (e: React.MouseEvent) => {
+  const handleReply = async (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    // Check if user is logged in
+    const mode = await getLoginMode();
+    if (mode === LoginMode.GUEST) {
+      // Show sign-up prompt for guest users
+      openDialog();
+      return;
+    }
+
+    // Proceed with reply for logged-in users
     onReply?.(thread);
   };
 
@@ -324,6 +344,14 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Sign-up prompt dialog for guest users */}
+      <SignUpPromptDialog
+        isOpen={isOpen}
+        onClose={closeDialog}
+        title="リプライするにはアカウントが必要です"
+        message="アカウントを作成すると、投稿へのリプライやコメントができるようになります。"
+      />
     </article>
   );
 };
