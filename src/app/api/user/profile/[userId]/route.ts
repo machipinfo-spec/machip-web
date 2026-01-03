@@ -13,16 +13,16 @@ export async function GET(
     const session = await auth();
     const { userId } = await params;
 
-    if (!session?.idToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // if (!session?.idToken) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     // バックエンドAPIへの呼び出し
     const response = await fetch(`${apiBaseUrl}/user/profile/${userId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `${session.idToken}`,
+        Authorization: `${session?.idToken}`,
       },
     });
 
