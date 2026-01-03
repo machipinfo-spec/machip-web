@@ -21,10 +21,7 @@ export const FormInput = ({
 }: FormInputProps) => {
   return (
     <div className="mb-0">
-      <label
-        htmlFor={name}
-        className="block text-sm font-medium text-gray-700 mb-1"
-      >
+      <label htmlFor={name} className="block text-sm font-medium mb-1">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {disabled ? (
