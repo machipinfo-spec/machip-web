@@ -135,123 +135,147 @@ const ProfilePage: React.FC = () => {
   // 表示中のエラーは hook の error を優先して表示
   const displayError = profileError ?? null;
 
+  // Loading Skeleton
   if (isFetching) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-500">
-        <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-white/30 rounded-full border-t-white animate-spin"></div>
-          <p className="mt-4 text-white text-sm">読み込み中...</p>
+      <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8 animate-pulse">
+        <div className="mb-8 text-center">
+          <div className="h-10 bg-gray-200 rounded w-48 mx-auto mb-2"></div>
+        </div>
+
+        <div className="flex flex-col gap-8 max-w-xl mx-auto">
+          {/* Image Upload Skeleton */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-32 h-32 bg-gray-200 rounded-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+          </div>
+
+          {/* Form Fields Skeleton */}
+          <div className="space-y-6">
+            <div>
+              <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+              <div className="h-12 bg-gray-200 rounded w-full"></div>
+            </div>
+            <div>
+              <div className="h-4 bg-gray-200 rounded w-16 mb-2"></div>
+              <div className="h-12 bg-gray-200 rounded w-full"></div>
+            </div>
+            <div>
+              <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+              <div className="h-32 bg-gray-200 rounded w-full"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br">
-      <div className="max-w-[480px] w-full bg-white rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.2)] overflow-hidden relative z-10">
-        <div className="p-8 sm:p-6">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold text-gray-800 mb-2 tracking-tight">
-              {isEditing ? "プロフィール編集" : "プロフィール"}
-            </h2>
+    <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-xl mx-auto">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-extrabold tracking-tight">
+            {isEditing ? "プロフィール編集" : "プロフィール"}
+          </h2>
+        </div>
+
+        {displayError && (
+          <div className="mb-6">
+            <AlertMessage message={displayError} type="error" />
           </div>
+        )}
 
-          {displayError && <AlertMessage message={displayError} type="error" />}
+        <div className="flex flex-col gap-8">
+          <ProfileImageUpload
+            imagePreview={imagePreview}
+            onImageChange={handleImageChange}
+            onImageRemove={handleImageRemove}
+            disabled={!isEditing}
+            onError={(msg) => setError(msg)}
+          />
 
-          <div className="block">
-            <div className="flex flex-col gap-5">
-              <ProfileImageUpload
-                imagePreview={imagePreview}
-                onImageChange={handleImageChange}
-                onImageRemove={handleImageRemove}
-                disabled={!isEditing}
-                onError={(msg) => setError(msg)}
-              />
+          <div className="space-y-6">
+            <FormInput
+              label="ニックネーム"
+              name="nickname"
+              value={userData.nickname}
+              onChange={handleChange}
+              placeholder="あなたのニックネーム"
+              disabled={!isEditing}
+              icon={
+                isEditing ? (
+                  <svg
+                    className="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : undefined
+              }
+            />
+            <FormInput
+              label="URL"
+              name="url"
+              value={userData.url}
+              onChange={handleChange}
+              placeholder=""
+              disabled={!isEditing}
+            />
 
-              <FormInput
-                label="ニックネーム"
-                name="nickname"
-                value={userData.nickname}
-                onChange={handleChange}
-                placeholder="あなたのニックネーム"
-                disabled={!isEditing}
-                icon={
-                  isEditing ? (
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  ) : undefined
-                }
-              />
-              <FormInput
-                label="URL"
-                name="url"
-                value={userData.url}
-                onChange={handleChange}
-                placeholder=""
-                disabled={!isEditing}
-              />
+            <FormTextarea
+              label="自己紹介"
+              name="bio"
+              value={userData.bio}
+              onChange={handleChange}
+              placeholder="あなたについて簡単に教えてください..."
+              disabled={!isEditing}
+            />
 
-              <FormTextarea
-                label="自己紹介"
-                name="bio"
-                value={userData.bio}
-                onChange={handleChange}
-                placeholder="あなたについて簡単に教えてください..."
-                disabled={!isEditing}
-              />
-
-              {isOwnProfile && (
-                <div className="pt-4">
-                  {isEditing ? (
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={handleCancel}
-                        disabled={isLoading}
-                        className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-3 focus:ring-gray-300/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        キャンセル
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSubmit}
-                        disabled={isLoading}
-                        className={`flex-1 flex justify-center items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-700 border-0 rounded-lg shadow-md cursor-pointer transition-[background,transform] duration-200 hover:from-indigo-700 hover:to-purple-800 hover:-translate-y-0.5 focus:outline-none focus:ring-3 focus:ring-indigo-600/40 active:translate-y-0.5 ${
-                          isLoading ? "opacity-70 cursor-not-allowed" : ""
-                        }`}
-                      >
-                        {isLoading ? (
-                          <>
-                            <span className="inline-block w-5 h-5 mr-3 border-2 border-white/30 rounded-full border-t-white animate-spin"></span>
-                            保存中...
-                          </>
-                        ) : (
-                          <>保存する</>
-                        )}
-                      </button>
-                    </div>
-                  ) : (
+            {isOwnProfile && (
+              <div className="pt-6">
+                {isEditing ? (
+                  <div className="flex gap-4">
                     <button
                       type="button"
-                      onClick={handleEdit}
-                      className="w-full flex justify-center items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-700 border-0 rounded-lg shadow-md cursor-pointer transition-[background,transform] duration-200 hover:from-indigo-700 hover:to-purple-800 hover:-translate-y-0.5 focus:outline-none focus:ring-3 focus:ring-indigo-600/40 active:translate-y-0.5"
+                      onClick={handleCancel}
+                      disabled={isLoading}
+                      className="flex-1 px-4 py-3 text-sm font-bold bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-gray-100 transition-all disabled:opacity-50"
                     >
-                      編集する
+                      キャンセル
                     </button>
-                  )}
-                </div>
-              )}
-            </div>
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={isLoading}
+                      className={`flex-1 flex justify-center items-center px-4 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed`}
+                    >
+                      {isLoading ? (
+                        <>
+                          <span className="inline-block w-5 h-5 mr-3 border-2 border-white/30 rounded-full border-t-white animate-spin"></span>
+                          保存中...
+                        </>
+                      ) : (
+                        <>保存する</>
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleEdit}
+                    className="w-full flex justify-center items-center px-4 py-3 text-sm font-bold text-white bg-neutral-900 rounded-xl hover:bg-neutral-800 transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-gray-100"
+                  >
+                    プロフィールを編集
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -263,19 +287,6 @@ const ProfilePage: React.FC = () => {
           position="top-right"
         />
       )}
-
-      <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </div>
   );
 };

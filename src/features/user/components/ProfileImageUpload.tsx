@@ -63,9 +63,7 @@ export const ProfileImageUpload = ({
 
   return (
     <div className="mb-0">
-      <label className="block text-sm font-medium text-gray-700 mb-3">
-        プロフィール画像
-      </label>
+      <label className="block text-sm font-medium mb-3">プロフィール画像</label>
       <div className="flex flex-col items-center gap-4">
         <div className="relative">
           {imagePreview ? (

@@ -21,10 +21,7 @@ export const FormTextarea = ({
 }: FormTextareaProps) => {
   return (
     <div className="mb-0">
-      <label
-        htmlFor={name}
-        className="block text-sm font-medium text-gray-700 mb-1"
-      >
+      <label htmlFor={name} className="block text-sm font-medium mb-1">
         {label}
       </label>
       {disabled ? (
@@ -48,7 +45,7 @@ export const FormTextarea = ({
               placeholder={placeholder}
             />
           </div>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs">
             {value.length} / {maxLength}文字
           </p>
         </>
