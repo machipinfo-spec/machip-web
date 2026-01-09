@@ -1,4 +1,4 @@
-// app/api/user/route.ts
+// app/api/timeline/thread/route.ts
 import { auth } from "@/src/services/auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,7 +11,10 @@ export async function POST(request: NextRequest) {
     if (!session?.idToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
     const body = await request.json();
+
+    // Forward JSON to backend
     const response = await fetch(`${apiBaseUrl}/timeline/thread`, {
       method: "POST",
       headers: {
@@ -22,19 +25,20 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to create exercise: ${response.status}`);
+      throw new Error(`Failed to create thread: ${response.status}`);
     }
 
-    const createdExercise = await response.json();
-    return NextResponse.json(createdExercise);
+    const createdThread = await response.json();
+    return NextResponse.json(createdThread);
   } catch (error) {
     console.error("Thread Create API error:", error);
     return NextResponse.json(
-      { error: "Failed to Thread Create API" },
+      { error: "Failed to create thread" },
       { status: 500 }
     );
   }
 }
+
 export async function DELETE(request: NextRequest) {
   try {
     const session = await auth();

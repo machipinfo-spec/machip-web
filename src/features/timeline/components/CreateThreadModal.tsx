@@ -4,7 +4,7 @@ import { ThreadComposerModal } from "@/src/features/thread/components/ThreadComp
 interface CreateThreadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (text: string, image: string | null) => Promise<void>;
+  onSubmit: (text: string, imageUrl: string | null) => Promise<void>;
 }
 
 export const CreateThreadModal: React.FC<CreateThreadModalProps> = ({

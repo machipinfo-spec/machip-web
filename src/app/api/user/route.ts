@@ -67,6 +67,7 @@ export async function POST() {
     return NextResponse.json({ error: error }, { status: 500 });
   }
 }
+
 export async function DELETE() {
   try {
     console.log("DELETE");

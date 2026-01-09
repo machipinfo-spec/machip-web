@@ -12,15 +12,12 @@ export const useThread = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createThread = async (
-    threadName: string,
-    imageBase64: string | null
-  ) => {
+  const createThread = async (threadName: string, imageUrl: string | null) => {
     try {
       const res = await fetch("/api/timeline/thread", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ threadName, imageBase64 }),
+        body: JSON.stringify({ threadName, imageUrl }),
       });
 
       if (!res.ok) throw new Error("failed");
@@ -36,13 +33,13 @@ export const useThread = (
   const submitReply = async (
     parentThreadId: string,
     threadName: string,
-    imageBase64: string | null
+    imageUrl: string | null
   ) => {
     try {
       const res = await fetch("/api/timeline/thread", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentThreadId, threadName, imageBase64 }),
+        body: JSON.stringify({ parentThreadId, threadName, imageUrl }),
       });
 
       if (!res.ok) throw new Error("failed");

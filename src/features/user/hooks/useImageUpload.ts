@@ -40,12 +40,16 @@ export const useImageUpload = () => {
     return await convertToBase64(profileImage);
   };
 
+  const getImageFile = (): File | null => {
+    return profileImage;
+  };
+
   return {
     imagePreview,
-    profileImage,
     handleImageChange,
     handleImageRemove,
     setInitialPreview,
     getImageBase64,
+    getImageFile,
   };
 };

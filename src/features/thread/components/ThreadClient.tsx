@@ -35,11 +35,18 @@ export default function ThreadClient({
     setReplyModalOpen(true);
   };
 
-  const handleSubmitReply = async (text: string, image: string | null) => {
+  const handleSubmitReply = async (text: string, imageUrl: string | null) => {
     if (!replyTarget) return;
-    await submitReply(replyTarget.threadId, text, image);
-    setReplyModalOpen(false);
-    setReplyTarget(null);
+
+    try {
+      await submitReply(replyTarget.threadId, text, imageUrl);
+
+      setReplyModalOpen(false);
+      setReplyTarget(null);
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "返信の投稿に失敗しました");
+    }
   };
 
   const toggleBookmark = (threadId: string) => {
