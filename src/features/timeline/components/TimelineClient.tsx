@@ -141,7 +141,7 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
       {/* 新規投稿ボタン (FAB) */}
       <button
         onClick={() => setCreateModalOpen(true)}
-        className="fixed bottom-8 right-8 p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-transform hover:scale-110 z-30"
+        className="fixed bottom-24 md:bottom-8 right-8 p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-transform hover:scale-110 z-40"
         aria-label="新規投稿"
       >
         <FaPlus className="w-6 h-6" />
