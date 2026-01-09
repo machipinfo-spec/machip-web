@@ -29,10 +29,6 @@ export const useInboxSummary = () => {
 
   useEffect(() => {
     fetchSummary();
-
-    // Optional: Poll every 60 seconds
-    const interval = setInterval(fetchSummary, 60000);
-    return () => clearInterval(interval);
   }, [fetchSummary]);
 
   return {

@@ -7,7 +7,7 @@ interface ReplyModalProps {
   isOpen: boolean;
   replyTarget: Thread | null;
   onClose: () => void;
-  onSubmit: (text: string, image: string | null) => Promise<void>;
+  onSubmit: (text: string, imageUrl: string | null) => Promise<void>;
 }
 
 export const ReplyModal: React.FC<ReplyModalProps> = ({

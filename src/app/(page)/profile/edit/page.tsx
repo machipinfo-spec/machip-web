@@ -9,6 +9,7 @@ import { ProfileImageUpload } from "@/src/features/user/components/ProfileImageU
 import { SuccessToast } from "@/src/features/user/components/SuccessToast";
 import { useImageUpload } from "@/src/features/user/hooks/useImageUpload";
 import { useProfile } from "@/src/features/user/hooks/useProfile";
+import { useS3Upload } from "@/src/features/upload/hooks/useS3Upload";
 
 const ProfileEditPage: React.FC = () => {
   const router = useRouter();
@@ -19,7 +20,6 @@ const ProfileEditPage: React.FC = () => {
     error: profileError,
     fetchProfile,
     updateProfile,
-    setError,
   } = useProfile("@self");
 
   const {
@@ -27,11 +27,13 @@ const ProfileEditPage: React.FC = () => {
     handleImageChange,
     handleImageRemove,
     setInitialPreview,
-    getImageBase64,
+    getImageFile,
   } = useImageUpload();
+  const { uploadToS3 } = useS3Upload();
 
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [userData, setUserData] = useState({
     nickname: "",
@@ -77,12 +79,21 @@ const ProfileEditPage: React.FC = () => {
         throw new Error("ニックネームを入力してください");
       }
 
-      const imageBase64 = await getImageBase64();
+      let imageUrl: string | null = null;
+      const imageFile = getImageFile();
+
+      // Upload image to S3 if present
+      if (imageFile) {
+        imageUrl = await uploadToS3(imageFile);
+        if (!imageUrl) {
+          throw new Error("画像のアップロードに失敗しました");
+        }
+      }
 
       const success = await updateProfile({
         nickname: userData.nickname,
         bio: userData.bio,
-        imageBase64,
+        imageUrl,
         url: userData.url,
       });
 

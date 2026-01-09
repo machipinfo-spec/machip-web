@@ -32,11 +32,11 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
     setReplyModalOpen(true);
   };
 
-  const handleSubmitReply = async (text: string, image: string | null) => {
+  const handleSubmitReply = async (text: string, imageUrl: string | null) => {
     if (!replyTarget) return;
 
     try {
-      await submitReply(replyTarget.threadId, text, image);
+      await submitReply(replyTarget.threadId, text, imageUrl);
 
       // 成功したらモーダルを閉じてタイムラインを更新
       setReplyModalOpen(false);
@@ -48,9 +48,9 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
     }
   };
 
-  const handleSubmitThread = async (text: string, image: string | null) => {
+  const handleSubmitThread = async (text: string, imageUrl: string | null) => {
     try {
-      await createThread(text, image);
+      await createThread(text, imageUrl);
       setCreateModalOpen(false);
       await refetch();
     } catch (err) {

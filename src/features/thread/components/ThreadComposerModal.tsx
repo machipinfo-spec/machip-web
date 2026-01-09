@@ -1,11 +1,12 @@
 "use client";
 import { useRef, useState } from "react";
 import { FaTimes, FaImage } from "react-icons/fa";
+import { useS3Upload } from "@/src/features/upload/hooks/useS3Upload";
 
 interface ThreadComposerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (text: string, image: string | null) => Promise<void>;
+  onSubmit: (text: string, imageUrl: string | null) => Promise<void>;
   title: string;
   submitLabel: string;
   placeholder?: string;
@@ -22,18 +23,21 @@ export const ThreadComposerModal: React.FC<ThreadComposerModalProps> = ({
   headerContent,
 }) => {
   const [text, setText] = useState("");
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadToS3 } = useS3Upload();
 
   if (!isOpen) return null;
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string);
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -41,6 +45,7 @@ export const ThreadComposerModal: React.FC<ThreadComposerModalProps> = ({
 
   const removeImage = () => {
     setImage(null);
+    setImagePreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -51,11 +56,24 @@ export const ThreadComposerModal: React.FC<ThreadComposerModalProps> = ({
 
     setSubmitting(true);
     try {
-      await onSubmit(text, image);
+      let imageUrl: string | null = null;
+
+      // Upload image to S3 if present
+      if (image) {
+        imageUrl = await uploadToS3(image);
+
+        if (!imageUrl) {
+          throw new Error("画像のアップロードに失敗しました");
+        }
+      }
+
+      await onSubmit(text, imageUrl);
       setText("");
       setImage(null);
+      setImagePreview(null);
     } catch (err) {
       console.error(err);
+      alert(err instanceof Error ? err.message : "投稿に失敗しました");
     } finally {
       setSubmitting(false);
     }
@@ -64,6 +82,7 @@ export const ThreadComposerModal: React.FC<ThreadComposerModalProps> = ({
   const handleClose = () => {
     setText("");
     setImage(null);
+    setImagePreview(null);
     onClose();
   };
 
@@ -102,10 +121,10 @@ export const ThreadComposerModal: React.FC<ThreadComposerModalProps> = ({
           />
 
           {/* プレビュー画像 */}
-          {image && (
+          {imagePreview && (
             <div className="relative mt-3 inline-block">
               <img
-                src={image}
+                src={imagePreview}
                 alt="プレビュー"
                 className="rounded-xl max-h-60 object-cover"
               />

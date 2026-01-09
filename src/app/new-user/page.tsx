@@ -7,6 +7,7 @@ import { FormTextarea } from "@/src/features/user/components/FormTextarea";
 import { ProfileImageUpload } from "@/src/features/user/components/ProfileImageUpload";
 import { SuccessToast } from "@/src/features/user/components/SuccessToast";
 import { useImageUpload } from "@/src/features/user/hooks/useImageUpload";
+import { useS3Upload } from "@/src/features/upload/hooks/useS3Upload";
 
 interface UserData {
   nickname: string;
@@ -20,8 +21,9 @@ const NewUserPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const { imagePreview, handleImageChange, handleImageRemove, getImageBase64 } =
+  const { imagePreview, handleImageChange, handleImageRemove, getImageFile } =
     useImageUpload();
+  const { uploadToS3 } = useS3Upload();
 
   const [userData, setUserData] = useState<UserData>({
     nickname: "",
@@ -68,7 +70,16 @@ const NewUserPage = () => {
         throw new Error("認証情報が見つかりません。再度ログインしてください。");
       }
 
-      const imageBase64 = await getImageBase64();
+      let imageUrl: string | null = null;
+      const imageFile = getImageFile();
+
+      // Upload image to S3 if present
+      if (imageFile) {
+        imageUrl = await uploadToS3(imageFile);
+        if (!imageUrl) {
+          throw new Error("画像のアップロードに失敗しました");
+        }
+      }
 
       const userCreateEndpoint = `/api/user`;
       const endpoint = `/api/user/profile`;
@@ -89,8 +100,8 @@ const NewUserPage = () => {
         },
         body: JSON.stringify({
           userName: userData.nickname,
-          imageBase64: imageBase64,
           introduction: userData.bio,
+          imageUrl,
           url: userData.url,
         }),
       });

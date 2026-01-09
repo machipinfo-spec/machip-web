@@ -1,0 +1,138 @@
+"use client";
+
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from "react";
+
+export interface UserProfile {
+  profileId: string;
+  userName: string;
+  imageUrl: string;
+  introduction: string;
+  url: string;
+}
+
+interface UpdateProfileParams {
+  nickname: string;
+  bio: string;
+  imageUrl: string | null;
+  url: string;
+}
+
+interface ProfileContextType {
+  data: UserProfile | null;
+  isFetching: boolean;
+  isOwnProfile: boolean;
+  error: string | null;
+  fetchProfile: (userId?: string) => Promise<void>;
+  updateProfile: (params: UpdateProfileParams) => Promise<boolean>;
+  clearProfile: () => void;
+}
+
+const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
+
+export function ProfileProvider({ children }: { children: ReactNode }) {
+  const [data, setData] = useState<UserProfile | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchProfile = useCallback(async (userId?: string) => {
+    try {
+      setIsFetching(true);
+      setError(null);
+
+      const endpoint = userId
+        ? `/api/user/profile/${userId}`
+        : `/api/user/profile/@self`;
+
+      const res = await fetch(endpoint);
+
+      if (!res.ok) throw new Error(`プロフィール取得に失敗 (${res.status})`);
+
+      const profile = (await res.json()) as UserProfile;
+      setData(profile);
+
+      // 自分自身かどうか判定
+      const selfRes = await fetch(`/api/user/profile/@self`);
+      if (selfRes.ok) {
+        const selfData = (await selfRes.json()) as UserProfile;
+        setIsOwnProfile(!userId || selfData.profileId === profile.profileId);
+      }
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "プロフィールの取得に失敗しました"
+      );
+    } finally {
+      setIsFetching(false);
+    }
+  }, []);
+
+  const updateProfile = useCallback(
+    async (params: UpdateProfileParams): Promise<boolean> => {
+      try {
+        setError(null);
+        const { nickname, bio, imageUrl, url } = params;
+
+        const res = await fetch("/api/user/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userName: nickname,
+            introduction: bio,
+            imageUrl,
+            url,
+          }),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "更新に失敗しました");
+        }
+
+        // Update local state immediately
+        await fetchProfile();
+        return true;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "更新に失敗しました");
+        return false;
+      }
+    },
+    [fetchProfile]
+  );
+
+  const clearProfile = useCallback(() => {
+    setData(null);
+    setIsFetching(false);
+    setIsOwnProfile(false);
+    setError(null);
+  }, []);
+
+  return (
+    <ProfileContext.Provider
+      value={{
+        data,
+        isFetching,
+        isOwnProfile,
+        error,
+        fetchProfile,
+        updateProfile,
+        clearProfile,
+      }}
+    >
+      {children}
+    </ProfileContext.Provider>
+  );
+}
+
+export function useProfileContext() {
+  const context = useContext(ProfileContext);
+  if (context === undefined) {
+    throw new Error("useProfileContext must be used within a ProfileProvider");
+  }
+  return context;
+}

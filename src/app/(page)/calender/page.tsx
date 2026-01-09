@@ -136,11 +136,11 @@ const CalendarTimelinePage = () => {
     setReplyTarget(null);
   };
 
-  const submitReply = async (text: string, image: string | null) => {
+  const submitReply = async (text: string, imageUrl: string | null) => {
     if (!replyTarget) return;
 
     try {
-      await submitReplyApi(replyTarget.threadId, text, image);
+      await submitReplyApi(replyTarget.threadId, text, imageUrl);
       closeReplyModal();
       await loadThreads();
     } catch (err) {
