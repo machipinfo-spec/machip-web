@@ -69,11 +69,11 @@ export const ThreadComposerModal: React.FC<ThreadComposerModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-12 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-12 pb-24 md:pb-4 overflow-y-auto"
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* モーダルヘッダー */}
