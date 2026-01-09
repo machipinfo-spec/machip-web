@@ -35,7 +35,7 @@ const BottomNav: React.FC = () => {
     },
     {
       label: "カレンダー",
-      href: "/calendar-timeline",
+      href: "/calender",
       icon: FaCalendarAlt,
     },
     {
