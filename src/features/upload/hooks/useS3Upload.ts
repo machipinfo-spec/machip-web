@@ -18,10 +18,14 @@ export const useS3Upload = () => {
     setProgress(0);
     setError(null);
 
+    // Track execution stage for better error reporting
+    let stage = "INIT";
+
     try {
       console.log("=== S3 Upload Start ===");
       console.log("File:", file.name, file.type, file.size, "bytes");
 
+      stage = "FETCH_PRESIGNED_URL";
       // 1. Get Presigned URL
       const presignedResponse = await fetch("/api/upload/presigned-url", {
         method: "POST",
@@ -43,12 +47,14 @@ export const useS3Upload = () => {
 
       console.log("Presigned URL obtained, uploading to S3...");
 
+      stage = "UPLOAD_TO_S3";
       // 2. Upload to S3
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",
         headers: {
           "Content-Type": file.type,
         },
+        mode: "cors",
         body: file,
       });
 
@@ -66,9 +72,26 @@ export const useS3Upload = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Upload failed";
 
+      // Determine which step failed based on stage
+      let failedStepDescription = "";
+      switch (stage) {
+        case "INIT":
+          failedStepDescription = "Initialization";
+          break;
+        case "FETCH_PRESIGNED_URL":
+          failedStepDescription = "1. Fetching Presigned URL";
+          break;
+        case "UPLOAD_TO_S3":
+          failedStepDescription = "2. S3 Upload Request";
+          break;
+        default:
+          failedStepDescription = "Unknown";
+      }
+
       // Debug alert for mobile
       const errorDetails = `
 S3 Upload Error:
+Step: ${failedStepDescription}
 Message: ${errorMessage}
 File: ${file.name}
 Type: ${file.type}
