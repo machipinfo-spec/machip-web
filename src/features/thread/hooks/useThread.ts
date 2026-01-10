@@ -46,22 +46,49 @@ export const useThread = (
 
       const newThread = await res.json();
 
-      // 子スレッドへの返信だった場合は当該子スレッドのリプライ数のみを調整する
-      if (newThread.parentThreadId) {
+      // 現在表示中のメインスレッドへの直接の返信の場合
+      if (thread && parentThreadId === thread.threadId) {
+        // 末尾に追加
+        setChildThreads((prev) => [...prev, newThread]);
+
+        // メインスレッドの返信数を更新
+        setThread({
+          ...thread,
+          childThreadCount: thread.childThreadCount + 1,
+        });
+      }
+      // 子スレッドへの返信の場合
+      else {
         setChildThreads((prev) =>
           prev.map((t) =>
-            t.threadId === newThread.parentThreadId
+            t.threadId === parentThreadId
               ? { ...t, childThreadCount: t.childThreadCount + 1 }
               : t
           )
         );
-      } else {
-        setChildThreads((prev) => [newThread, ...prev]);
       }
       return newThread;
     } catch (err) {
       setError("返信に失敗しました");
       throw err;
+    }
+  };
+
+  // APIを呼ばずにローカルステートのみ更新する（ThreadCard等で別途APIが呼ばれた場合用）
+  const removeLocalThread = (threadId: string) => {
+    // 削除対象が現在のリスト（メインスレッドへの直接の返信）に含まれているか確認
+    const isDirectReply = childThreads.some((t) => t.threadId === threadId);
+
+    setChildThreads((prev) => prev.filter((t) => t.threadId !== threadId));
+
+    if (thread?.threadId === threadId) {
+      setThread(null);
+    } else if (thread && isDirectReply) {
+      // メインスレッドへの返信が削除された場合、カウントを減らす
+      setThread({
+        ...thread,
+        childThreadCount: Math.max(0, thread.childThreadCount - 1),
+      });
     }
   };
 
@@ -73,12 +100,7 @@ export const useThread = (
 
       if (!res.ok) throw new Error("failed");
 
-      setChildThreads((prev) => prev.filter((t) => t.threadId !== threadId));
-
-      // メインスレッドが削除された場合
-      if (thread?.threadId === threadId) {
-        setThread(null);
-      }
+      removeLocalThread(threadId);
     } catch {
       setError("削除に失敗しました");
     }
@@ -120,6 +142,7 @@ export const useThread = (
     createThread,
     submitReply,
     deleteThread,
+    removeLocalThread,
     fetchThreadsByDate,
   };
 };

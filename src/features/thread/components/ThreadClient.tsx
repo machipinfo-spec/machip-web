@@ -20,8 +20,15 @@ export default function ThreadClient({
   ownUserId,
 }: Props) {
   const router = useRouter();
-  const { thread, childThreads, loading, error, submitReply, deleteThread } =
-    useThread(initialThread, initialChildThreads);
+  const {
+    thread,
+    childThreads,
+    loading,
+    error,
+    submitReply,
+    deleteThread,
+    removeLocalThread,
+  } = useThread(initialThread, initialChildThreads);
   const [bookmarkedThreads, setBookmarkedThreads] = useState<Set<string>>(
     new Set()
   );
@@ -63,7 +70,8 @@ export default function ThreadClient({
       router.push("/timeline");
     } else {
       // 子スレッドが削除された場合はローカルステートから削除
-      await deleteThread(threadId);
+      // ThreadCard内でAPIが呼ばれるため、ここではステート更新のみを行う
+      removeLocalThread(threadId);
     }
   };
 
