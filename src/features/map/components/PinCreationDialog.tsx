@@ -128,168 +128,92 @@ export const PinCreationDialog: React.FC<PinCreationDialogProps> = ({
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(0,0,0,0.4)",
-        zIndex: 9999,
-      }}
+      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-[9999]"
       onClick={() => !savingPin && handleCancel()}
     >
       <div
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 400,
-          maxHeight: "90vh",
-          overflowY: "auto",
-          background: "#fff",
-          borderRadius: 8,
-          padding: 16,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-          color: "#333",
-        }}
+        className="w-[400px] max-w-[90vw] max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-6 shadow-2xl text-gray-800"
       >
-        <h3 style={{ margin: "0 0 16px 0" }}>新しいピン</h3>
+        <h3 className="text-lg font-bold mb-6 text-gray-900">新しいピン</h3>
 
-        <label
-          style={{
-            fontSize: 12,
-            color: "#555",
-            display: "block",
-            marginBottom: 4,
-          }}
-        >
-          スレッド名 <span style={{ color: "red" }}>*</span>
+        <label className="block text-xs font-medium text-gray-500 mb-1">
+          スレッド名 <span className="text-red-500">*</span>
         </label>
         <input
           value={threadName}
           onChange={(e) => onThreadNameChange(e.target.value)}
           placeholder="スレッド名を入力"
-          style={{
-            width: "100%",
-            padding: "8px 10px",
-            marginBottom: 12,
-            borderRadius: 6,
-            border: "1px solid #ddd",
-            boxSizing: "border-box",
-            color: "#333",
-          }}
+          className="w-full px-3 py-2 mb-4 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none text-sm text-gray-800 placeholder-gray-400"
         />
 
-        <label
-          style={{
-            fontSize: 12,
-            color: "#555",
-            display: "block",
-            marginBottom: 4,
-          }}
-        >
-          カテゴリ <span style={{ color: "red" }}>*</span>
+        <label className="block text-xs font-medium text-gray-500 mb-1">
+          カテゴリ <span className="text-red-500">*</span>
         </label>
-        <select
-          value={category}
-          onChange={(e) => onCategoryChange(e.target.value as Category)}
-          style={{
-            width: "100%",
-            padding: "8px 10px",
-            marginBottom: 12,
-            borderRadius: 6,
-            border: "1px solid #ddd",
-            boxSizing: "border-box",
-            color: "#333",
-          }}
-        >
-          {CATEGORIES.map((cat) => (
-            <option key={cat.value} value={cat.value}>
-              {cat.label}
-            </option>
-          ))}
-        </select>
+        <div className="relative mb-4">
+          <select
+            value={category}
+            onChange={(e) => onCategoryChange(e.target.value as Category)}
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none text-sm text-gray-800 appearance-none bg-white"
+          >
+            {CATEGORIES.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
 
         {/* Date Fields - Show for Event */}
         {isEvent && (
-          <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  fontSize: 12,
-                  color: "#555",
-                  display: "block",
-                  marginBottom: 4,
-                }}
-              >
-                開始日時 <span style={{ color: "red" }}>*</span>
+          <div className="flex gap-4 mb-4">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                開始日時 <span className="text-red-500">*</span>
               </label>
-              <div style={{ position: "relative" }}>
+              <div className="relative">
                 <input
                   type="datetime-local"
                   value={formatDateTimeForInput(selectedDate)}
                   onChange={(e) => handleDateChange(e, setSelectedDate)}
-                  style={{
-                    width: "100%",
-                    padding: "8px 10px",
-                    paddingLeft: 30, // Icon space
-                    borderRadius: 6,
-                    border: "1px solid #ddd",
-                    boxSizing: "border-box",
-                    color: "#333",
-                    fontSize: "13px",
-                  }}
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none text-sm text-gray-800"
                 />
                 <FiCalendar
-                  style={{
-                    position: "absolute",
-                    left: 8,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "#666",
-                    pointerEvents: "none",
-                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                   size={16}
                 />
               </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  fontSize: 12,
-                  color: "#555",
-                  display: "block",
-                  marginBottom: 4,
-                }}
-              >
-                終了日時 <span style={{ color: "red" }}>*</span>
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                終了日時 <span className="text-red-500">*</span>
               </label>
-              <div style={{ position: "relative" }}>
+              <div className="relative">
                 <input
                   type="datetime-local"
                   value={formatDateTimeForInput(endDate)}
                   onChange={(e) => handleDateChange(e, setEndDate)}
-                  style={{
-                    width: "100%",
-                    padding: "8px 10px",
-                    paddingLeft: 30,
-                    borderRadius: 6,
-                    border: "1px solid #ddd",
-                    boxSizing: "border-box",
-                    color: "#333",
-                    fontSize: "13px",
-                  }}
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none text-sm text-gray-800"
                 />
                 <FiCalendar
-                  style={{
-                    position: "absolute",
-                    left: 8,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "#666",
-                    pointerEvents: "none",
-                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                   size={16}
                 />
               </div>
@@ -300,29 +224,14 @@ export const PinCreationDialog: React.FC<PinCreationDialogProps> = ({
         {/* URL - Show for Event */}
         {isEvent && (
           <>
-            <label
-              style={{
-                fontSize: 12,
-                color: "#555",
-                display: "block",
-                marginBottom: 4,
-              }}
-            >
+            <label className="block text-xs font-medium text-gray-500 mb-1">
               URL
             </label>
             <input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com"
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                marginBottom: 12,
-                borderRadius: 6,
-                border: "1px solid #ddd",
-                boxSizing: "border-box",
-                color: "#333",
-              }}
+              className="w-full px-3 py-2 mb-4 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none text-sm text-gray-800 placeholder-gray-400"
             />
           </>
         )}
@@ -330,14 +239,7 @@ export const PinCreationDialog: React.FC<PinCreationDialogProps> = ({
         {/* Detail - Show for Event */}
         {isEvent && (
           <>
-            <label
-              style={{
-                fontSize: 12,
-                color: "#555",
-                display: "block",
-                marginBottom: 4,
-              }}
-            >
+            <label className="block text-xs font-medium text-gray-500 mb-1">
               詳細
             </label>
             <textarea
@@ -345,126 +247,63 @@ export const PinCreationDialog: React.FC<PinCreationDialogProps> = ({
               onChange={(e) => setDetail(e.target.value)}
               placeholder="イベントの詳細を入力"
               rows={3}
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                marginBottom: 12,
-                borderRadius: 6,
-                border: "1px solid #ddd",
-                boxSizing: "border-box",
-                color: "#333",
-                resize: "vertical",
-              }}
+              className="w-full px-3 py-2 mb-4 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none text-sm text-gray-800 placeholder-gray-400 resize-y min-h-[80px]"
             />
           </>
         )}
 
-        <label
-          style={{
-            fontSize: 12,
-            color: "#555",
-            display: "block",
-            marginBottom: 4,
-          }}
-        >
+        <label className="block text-xs font-medium text-gray-500 mb-1">
           画像
         </label>
-        <div style={{ marginBottom: 12 }}>
+        <div className="mb-6">
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             onChange={handleImageSelect}
-            style={{ display: "none" }}
+            className="hidden"
             id="image-upload"
           />
           <label
             htmlFor="image-upload"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 16px",
-              borderRadius: 6,
-              border: "1px solid #ddd",
-              background: "#f9f9f9",
-              cursor: "pointer",
-              fontSize: 14,
-            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-gray-400 cursor-pointer transition-all text-sm text-gray-600 w-full justify-center"
           >
             <FiImage size={18} />
-            画像を選択
+            {imagePreview ? "画像を変更" : "画像を選択"}
           </label>
           {imagePreview && (
-            <div
-              style={{
-                marginTop: 12,
-                position: "relative",
-                display: "inline-block",
-              }}
-            >
+            <div className="mt-3 relative inline-block group">
               <img
                 src={imagePreview}
                 alt="選択された画像"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: 200,
-                  borderRadius: 6,
-                  border: "1px solid #ddd",
-                }}
+                className="max-w-full max-h-[200px] rounded-lg border border-gray-200 object-cover"
               />
               <button
                 onClick={handleRemoveImage}
-                style={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  border: "none",
-                  background: "rgba(0,0,0,0.6)",
-                  color: "#fff",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
               >
-                <FiX size={16} />
+                <FiX size={14} />
               </button>
             </div>
           )}
         </div>
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+
+        <div className="flex gap-3 justify-end pt-2 border-t border-gray-100">
           <button
             onClick={handleCancel}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              background: "#746d7763",
-              cursor: "pointer",
-            }}
             disabled={savingPin}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors disabled:opacity-50"
           >
             キャンセル
           </button>
           <button
             onClick={handleConfirm}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 6,
-              border: "none",
-              background: "#1976d2",
-              color: "#fff",
-              cursor: "pointer",
-            }}
             disabled={
               savingPin ||
               !threadName.trim() ||
               (isEvent && (!selectedDate || !endDate))
             }
+            className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm shadow-blue-200"
           >
             {savingPin ? "登録中..." : "ピンを立てる"}
           </button>

@@ -293,6 +293,12 @@ const MapWithCustomModalMarker: React.FC<MapWithCustomModalMarkerProps> = ({
             <Marker
               position={{ lat: p.lat, lng: p.lng }}
               onClick={() => handleMarkerClick(p)}
+              icon={{
+                url:
+                  p.category === "event"
+                    ? "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                    : "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+              }}
             />
 
             {activeId === p.id && (
