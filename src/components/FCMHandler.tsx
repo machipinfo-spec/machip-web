@@ -20,7 +20,7 @@ export default function FCMHandler() {
   if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 max-w-sm animate-in slide-in-from-bottom-5">
+    <div className="fixed bottom-24 right-4 z-50 p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 max-w-sm animate-in slide-in-from-bottom-5">
       <div className="flex flex-col gap-2">
         <h3 className="font-semibold text-sm">通知を受け取りますか？</h3>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
