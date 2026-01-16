@@ -12,8 +12,14 @@ async function refreshTokens(token: JWT): Promise<{
   idToken: string;
   refreshToken?: string;
 } | null> {
+  console.log("Attemping to refresh tokens...");
+
   if (!token.refreshToken) {
     console.error("No refresh token available");
+    return null;
+  }
+  if (!token.userName) {
+    console.error("No userName available in token");
     return null;
   }
 
@@ -31,7 +37,10 @@ async function refreshTokens(token: JWT): Promise<{
   }
 
   try {
-    let baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000";
+    let baseUrl =
+      process.env.NEXTAUTH_URL ||
+      process.env.VERCEL_URL ||
+      "http://localhost:3000";
 
     if (process.env.VERCEL_URL && !baseUrl.startsWith("http")) {
       baseUrl = `https://${baseUrl}`;
@@ -100,14 +109,6 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
-// Extend the Session type to include accessToken and error
-declare module "next-auth" {
-  interface Session {
-    accessToken?: string;
-    idToken?: string;
-    error?: string;
-  }
-}
 export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     Cognito({
@@ -133,7 +134,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     async redirect() {
       return "/map";
     },
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user, profile }) {
       // 初回サインイン時
       if (account && user) {
         // console.log("jwt initial - storing tokens");
@@ -159,7 +160,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
         // id_tokenからcognito:usernameを取得
         let cognitoUsername = undefined;
-        if (account.id_token) {
+        // プロファイルから取得を試みる (最も確実)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (profile && (profile as any)["cognito:username"]) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          cognitoUsername = (profile as any)["cognito:username"];
+        }
+
+        if (!cognitoUsername && account.id_token) {
           try {
             const payload = JSON.parse(
               Buffer.from(account.id_token.split(".")[1], "base64").toString(
@@ -173,6 +181,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           }
         }
         token.userName = cognitoUsername;
+        console.log("Initial JWT callback. userName:", token.userName);
 
         return token;
       }
@@ -202,6 +211,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       // トークンをリフレッシュ
       try {
+        console.log("Token expired. Calling refreshTokens...");
         const newTokens = await refreshTokens(token);
 
         if (newTokens) {
