@@ -3,7 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { InboxMessage, InboxResponse } from "../types/Inbox";
 
-export const useInbox = () => {
+export const useInbox = (options?: { enabled?: boolean }) => {
+  const { enabled = true } = options || {};
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -50,8 +51,10 @@ export const useInbox = () => {
   );
 
   useEffect(() => {
-    fetchMessages(0, false);
-  }, [fetchMessages]);
+    if (enabled) {
+      fetchMessages(0, false);
+    }
+  }, [fetchMessages, enabled]);
 
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {

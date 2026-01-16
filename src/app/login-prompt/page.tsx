@@ -4,10 +4,13 @@ import { FaMapMarkerAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 import { IoSparkles, IoChatbubblesSharp } from "react-icons/io5";
 import { MdPushPin } from "react-icons/md";
 import { signIn } from "../../services/auth";
+import Link from "next/link";
+import Image from "next/image";
 
 const LoginPrompt: React.FC = () => {
   return (
-    <div className="
+    <div
+      className="
       flex flex-col justify-center items-center min-h-screen
       bg-gradient-to-br from-orange-50 via-pink-50 to-amber-50 
       p-5 font-sans relative overflow-hidden
@@ -17,22 +20,32 @@ const LoginPrompt: React.FC = () => {
       after:content-[''] after:absolute after:top-1/3 after:right-1/4 after:w-64 after:h-64
       after:bg-[radial-gradient(circle,rgba(236,72,153,0.2)_0%,transparent_70%)]
       after:rounded-full after:blur-[40px] after:animate-[float_8s_ease-in-out_infinite_2s]
-    ">
-      <div className="
+    "
+    >
+      <div
+        className="
         bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 max-w-[520px] w-full text-center 
         relative z-10 border border-orange-100/50 sm:p-6 sm:mx-4
-      ">
+      "
+      >
         {/* ヘッダー */}
         <div className="mb-8">
-          <div className="
+          <div
+            className="
             inline-flex items-center justify-center w-20 h-20 
             bg-gradient-to-br from-orange-400 to-pink-500
             rounded-2xl mb-5 shadow-lg shadow-orange-300/40 sm:w-16 sm:h-16 
             relative overflow-hidden
-          ">
+          "
+          >
             <div className="absolute inset-0 bg-white/20 animate-pulse" />
-            <FaMapMarkerAlt className="text-3xl text-white relative z-10 sm:text-2xl" />
-            <MdPushPin className="text-lg text-white/80 absolute top-2 right-2 rotate-45" />
+            <Image
+              src="/pwa-icon.png"
+              alt="App Icon"
+              width={64}
+              height={64}
+              className="relative z-10 w-12 h-12 object-contain"
+            />
           </div>
 
           <h1 className="text-3xl font-bold mb-3 text-gray-800 leading-tight sm:text-2xl">
@@ -111,7 +124,6 @@ const LoginPrompt: React.FC = () => {
           </div>
         </div>
 
-        {/* ログインボタン */}
         <div className="flex flex-col gap-4">
           <form
             action={async () => {
@@ -135,20 +147,34 @@ const LoginPrompt: React.FC = () => {
             </button>
           </form>
 
-          <p className="text-xs text-gray-500 m-0 mt-2">
+          {/* ゲストログイン */}
+          <div className="text-center">
+            <Link
+              href="/map"
+              className="text-gray-500 hover:text-orange-500 text-sm font-medium transition-colors underline decoration-gray-300 hover:decoration-orange-500 underline-offset-4"
+            >
+              ログインせずに利用する（ゲストモード）
+            </Link>
+          </div>
+
+          <p className="text-xs text-gray-500 m-0 mt-2 text-center">
             ログインすることで、投稿やコメントが可能になります
           </p>
         </div>
       </div>
 
       {/* 下部バナー */}
-      <div className="
+      <div
+        className="
         inline-flex items-center gap-2 bg-white/80 backdrop-blur-md 
         rounded-full px-6 py-3 text-gray-700 text-sm mt-8 
         border border-orange-200/50 shadow-md
-      ">
+      "
+      >
         <IoSparkles className="text-base text-amber-400 animate-pulse" />
-        <span className="font-medium">あなたの街をもっと楽しく、もっと便利に</span>
+        <span className="font-medium">
+          あなたの街をもっと楽しく、もっと便利に
+        </span>
       </div>
     </div>
   );
