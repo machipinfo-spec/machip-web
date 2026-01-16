@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -11,10 +11,25 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useInboxSummary } from "@/src/features/inbox/hooks/useInboxSummary";
+import {
+  useLoginMode,
+  LoginMode,
+} from "@/src/features/user/hooks/useLoginMode";
 
 const BottomNav: React.FC = () => {
   const pathname = usePathname();
-  const { unreadCount } = useInboxSummary();
+  const { getLoginMode } = useLoginMode();
+  const [isGuest, setIsGuest] = useState<boolean>(true);
+
+  useEffect(() => {
+    const checkMode = async () => {
+      const mode = await getLoginMode();
+      setIsGuest(mode === LoginMode.GUEST);
+    };
+    checkMode();
+  }, [getLoginMode]);
+
+  const { unreadCount } = useInboxSummary({ enabled: !isGuest });
 
   const navItems = [
     {

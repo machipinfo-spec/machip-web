@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { useProfileContext, UserProfile } from "@/src/contexts/ProfileContext";
 
-export function useProfile(userId?: string) {
+export function useProfile(userId?: string, options?: { enabled?: boolean }) {
+  const { enabled = true } = options || {};
   const context = useProfileContext();
 
   /* -------------------------------------------------------------
@@ -16,7 +17,7 @@ export function useProfile(userId?: string) {
   const [localError, setLocalError] = useState<string | null>(null);
 
   const fetchLocalProfile = useCallback(async () => {
-    if (!userId) return;
+    if (!userId || !enabled) return;
     try {
       setLocalLoading(true);
       setLocalError(null);
@@ -38,8 +39,9 @@ export function useProfile(userId?: string) {
       );
     } finally {
       setLocalLoading(false);
+      setLocalLoading(false);
     }
-  }, [userId]);
+  }, [userId, enabled]);
 
   // Derived state for own profile check
   const isOwnProfileLocal =

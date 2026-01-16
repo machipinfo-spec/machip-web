@@ -3,7 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { InboxResponse, InboxSummary } from "../types/Inbox";
 
-export const useInboxSummary = () => {
+export const useInboxSummary = (options?: { enabled?: boolean }) => {
+  const { enabled = true } = options || {};
   const [summary, setSummary] = useState<InboxSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,8 +29,10 @@ export const useInboxSummary = () => {
   }, []);
 
   useEffect(() => {
-    fetchSummary();
-  }, [fetchSummary]);
+    if (enabled) {
+      fetchSummary();
+    }
+  }, [fetchSummary, enabled]);
 
   return {
     summary,

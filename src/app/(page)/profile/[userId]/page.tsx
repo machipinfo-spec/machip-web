@@ -4,12 +4,28 @@ import React, { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useProfile } from "@/src/features/user/hooks/useProfile";
 import Image from "next/image";
-import { FaUser, FaLink } from "react-icons/fa";
+import { FaUser, FaLink, FaSignInAlt } from "react-icons/fa";
+import {
+  useLoginMode,
+  LoginMode,
+} from "@/src/features/user/hooks/useLoginMode";
+import Link from "next/link";
 
 const ProfilePage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const userId = (params as { userId?: string })?.userId;
+
+  const { getLoginMode } = useLoginMode();
+  const [isGuest, setIsGuest] = React.useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkMode = async () => {
+      const mode = await getLoginMode();
+      setIsGuest(mode === LoginMode.GUEST);
+    };
+    checkMode();
+  }, [getLoginMode]);
 
   const {
     data,
@@ -17,12 +33,37 @@ const ProfilePage: React.FC = () => {
     isOwnProfile,
     error: profileError,
     fetchProfile,
-  } = useProfile(userId);
+  } = useProfile(userId, { enabled: isGuest === false });
 
   useEffect(() => {
-    fetchProfile();
+    if (isGuest === false) {
+      fetchProfile();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, [userId, isGuest]);
+
+  if (isGuest === true) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+          <FaSignInAlt className="text-2xl text-gray-400" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">
+          ログインが必要です
+        </h2>
+        <p className="text-gray-500 mb-8 max-w-sm">
+          プロフィールを閲覧するには、アカウントへのログインが必要です。
+        </p>
+        <Link
+          href="/login-prompt"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full transition-colors shadow-lg shadow-blue-200"
+        >
+          <FaSignInAlt />
+          <span>ログインする</span>
+        </Link>
+      </div>
+    );
+  }
 
   if (isFetching) {
     return (

@@ -5,7 +5,25 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useInbox } from "../hooks/useInbox";
 import { InboxItem } from "./InboxItem";
 
+import Link from "next/link";
+import { FaSignInAlt } from "react-icons/fa";
+import {
+  useLoginMode,
+  LoginMode,
+} from "@/src/features/user/hooks/useLoginMode";
+
 export const InboxList: React.FC = () => {
+  const { getLoginMode } = useLoginMode();
+  const [isGuest, setIsGuest] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    const checkMode = async () => {
+      const mode = await getLoginMode();
+      setIsGuest(mode === LoginMode.GUEST);
+    };
+    checkMode();
+  }, [getLoginMode]);
+
   const {
     messages,
     isLoading,
@@ -16,7 +34,31 @@ export const InboxList: React.FC = () => {
     deleteMessage,
     loadMore,
     hasMore,
-  } = useInbox();
+  } = useInbox({ enabled: isGuest === false }); // isGuestがfalse(ログイン済み)の時だけfetch
+
+  // Guest Mode UI
+  if (isGuest === true) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+          <FaSignInAlt className="text-2xl text-gray-400" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">
+          ログインが必要です
+        </h2>
+        <p className="text-gray-500 mb-8 max-w-sm">
+          受信トレイを利用するには、アカウントへのログインが必要です。
+        </p>
+        <Link
+          href="/login-prompt"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full transition-colors shadow-lg shadow-blue-200"
+        >
+          <FaSignInAlt />
+          <span>ログインする</span>
+        </Link>
+      </div>
+    );
+  }
 
   // Initial load only
   if (isLoading && messages.length === 0) {

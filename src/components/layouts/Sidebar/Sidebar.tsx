@@ -14,6 +14,10 @@ import {
 } from "react-icons/fa";
 import { useProfile } from "@/src/features/user/hooks/useProfile";
 import { useInboxSummary } from "@/src/features/inbox/hooks/useInboxSummary";
+import {
+  useLoginMode,
+  LoginMode,
+} from "@/src/features/user/hooks/useLoginMode";
 
 const navItems = [
   { href: "/home", label: "ホーム", icon: FaHome },
@@ -33,7 +37,18 @@ export default function SidebarNavigation({ open, onClose }: Props) {
   const pathname = usePathname();
   const ref = useRef<HTMLDivElement>(null);
   const { data: profile } = useProfile();
-  const { unreadCount } = useInboxSummary();
+  const { getLoginMode } = useLoginMode();
+  const [isGuest, setIsGuest] = useState<boolean>(true);
+
+  useEffect(() => {
+    const checkMode = async () => {
+      const mode = await getLoginMode();
+      setIsGuest(mode === LoginMode.GUEST);
+    };
+    checkMode();
+  }, [getLoginMode]);
+
+  const { unreadCount } = useInboxSummary({ enabled: !isGuest });
 
   // 外側クリックで閉じる
   useEffect(() => {

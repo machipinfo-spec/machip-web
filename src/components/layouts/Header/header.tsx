@@ -84,11 +84,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
           <Link href="/timeline" className="flex items-center">
             <Image
-              src="/images/toplogo.png"
+              src="/pwa-icon.png"
               alt="マチップ"
-              width={100}
+              width={32}
               height={32}
-              className="h-8 w-auto object-contain"
+              className="h-8 w-8 object-contain"
               priority
             />
           </Link>
