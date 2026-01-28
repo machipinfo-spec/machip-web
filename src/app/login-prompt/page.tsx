@@ -3,7 +3,7 @@ import React from "react";
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 import { IoSparkles, IoChatbubblesSharp } from "react-icons/io5";
 import { MdPushPin } from "react-icons/md";
-import { signIn } from "../../services/auth";
+import { signIn, signOut } from "../../services/auth";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -149,12 +149,19 @@ const LoginPrompt: React.FC = () => {
 
           {/* ゲストログイン */}
           <div className="text-center">
-            <Link
-              href="/map"
-              className="text-gray-500 hover:text-orange-500 text-sm font-medium transition-colors underline decoration-gray-300 hover:decoration-orange-500 underline-offset-4"
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/map" });
+              }}
             >
-              ログインせずに利用する（ゲストモード）
-            </Link>
+              <button
+                type="submit"
+                className="bg-transparent border-none cursor-pointer text-gray-500 hover:text-orange-500 text-sm font-medium transition-colors underline decoration-gray-300 hover:decoration-orange-500 underline-offset-4"
+              >
+                ログインせずに利用する（ゲストモード）
+              </button>
+            </form>
           </div>
 
           <p className="text-xs text-gray-500 m-0 mt-2 text-center">

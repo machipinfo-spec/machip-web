@@ -10,6 +10,12 @@ import { FaPlus } from "react-icons/fa";
 import { useTimeline } from "@/src/features/timeline/hooks/useTimeline";
 import { useThread } from "@/src/features/thread/hooks/useThread";
 import { Thread } from "../../thread/types/Thread";
+import { useSignUpPrompt } from "@/src/features/user/hooks/useSignUpPrompt";
+import {
+  useLoginMode,
+  LoginMode,
+} from "@/src/features/user/hooks/useLoginMode";
+import { SignUpPromptDialog } from "@/src/features/user/components/SignUpPromptDialog";
 
 type Props = {
   initialItems: Thread[];
@@ -25,12 +31,15 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
   const { createThread, submitReply } = useThread();
   const [openImage, setOpenImage] = useState<string | null>(null);
   const [bookmarkedThreads, setBookmarkedThreads] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [replyTarget, setReplyTarget] = useState<Thread | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  const { isOpen, openDialog, closeDialog } = useSignUpPrompt();
+  const { getLoginMode } = useLoginMode();
 
   const handleReply = (thread: Thread) => {
     setReplyTarget(thread);
@@ -163,9 +172,24 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
         onSubmit={handleSubmitThread}
       />
 
+      {/* Sign-up prompt dialog for guest users */}
+      <SignUpPromptDialog
+        isOpen={isOpen}
+        onClose={closeDialog}
+        title="投稿するにはアカウントが必要です"
+        message="アカウントを作成すると、新しいスレッドを作成して、イベントや話題を共有できるようになります。"
+      />
+
       {/* 新規投稿ボタン (FAB) */}
       <button
-        onClick={() => setCreateModalOpen(true)}
+        onClick={async () => {
+          const mode = await getLoginMode();
+          if (mode === LoginMode.GUEST) {
+            openDialog();
+            return;
+          }
+          setCreateModalOpen(true);
+        }}
         className="fixed bottom-24 md:bottom-8 right-8 p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-transform hover:scale-110 z-40"
         aria-label="新規投稿"
       >
