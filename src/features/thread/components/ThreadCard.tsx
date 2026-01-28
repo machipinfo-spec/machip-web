@@ -153,7 +153,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
     try {
       const res = await fetch(
         `/api/timeline/thread?threadId=${thread.threadId}`,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
 
       if (!res.ok) throw new Error("削除に失敗しました");
@@ -224,6 +224,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
               </span>
               <span
                 className={`text-gray-500 ${isCompact ? "text-xs" : "text-sm"}`}
+                suppressHydrationWarning
               >
                 · {formatDate(thread.createdAt)}
               </span>
@@ -283,7 +284,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({
                 <span>
                   {formatEventDateRange(
                     thread.categoryContent.startDate,
-                    thread.categoryContent.endDate
+                    thread.categoryContent.endDate,
                   )}
                 </span>
               </div>

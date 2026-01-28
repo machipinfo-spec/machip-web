@@ -37,6 +37,10 @@ export const InboxList: React.FC = () => {
   } = useInbox({ enabled: isGuest === false }); // isGuestがfalse(ログイン済み)の時だけfetch
 
   // Guest Mode UI
+  if (isGuest === null) {
+    return null; // or a spinner
+  }
+
   if (isGuest === true) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
