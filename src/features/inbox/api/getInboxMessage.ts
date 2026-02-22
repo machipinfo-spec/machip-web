@@ -14,14 +14,19 @@ export const getInboxMessage = async (
     },
   });
 
-  // debug用にmessageIdとレスポンスを出力
-  console.log("messageId", messageId);
-  console.log("response", response);
-
   if (!response.ok) {
     throw new Error(`Error fetching message: ${response.statusText}`);
   }
 
   const data = await response.json();
-  return data;
+
+  // Map MessageDetailResponse from backend to InboxMessage type
+  return {
+    id: data.userMessage?.id || "",
+    messageId: data.message?.id || messageId,
+    message: data.message,
+    deliveredAt: data.userMessage?.deliveredAt || "",
+    readAt: data.userMessage?.readAt || null,
+    isRead: data.userMessage?.isRead || false,
+  };
 };

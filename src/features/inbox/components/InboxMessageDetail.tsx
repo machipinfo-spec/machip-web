@@ -158,6 +158,16 @@ export const InboxMessageDetail: React.FC<InboxMessageDetailProps> = ({
           )}
         </article>
 
+        {/* Debug: display parsedContent */}
+        <div className="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <h3 className="text-sm font-bold text-gray-700 mb-2">
+            Debug: parsedContent
+          </h3>
+          <pre className="text-xs text-gray-600 whitespace-pre-wrap break-all">
+            {JSON.stringify(parsedContent, null, 2)}
+          </pre>
+        </div>
+
         {/* Actions */}
         <div className="mt-12 pt-6 border-t border-gray-100">
           <button
