@@ -7,6 +7,7 @@ import { ReplyModal } from "@/src/features/thread/components/ReplyModal";
 import { ImageModal } from "@/src/features/thread/components/ImageModal";
 import { useThread } from "@/src/features/thread/hooks/useThread";
 import { Thread } from "../types/Thread";
+import { useBookmarks } from "@/src/features/user/hooks/useBookmarks";
 
 type Props = {
   initialThread: Thread | null;
@@ -29,9 +30,7 @@ export default function ThreadClient({
     deleteThread,
     removeLocalThread,
   } = useThread(initialThread, initialChildThreads);
-  const [bookmarkedThreads, setBookmarkedThreads] = useState<Set<string>>(
-    new Set()
-  );
+  const { bookmarkedIds: bookmarkedThreads, toggleBookmark } = useBookmarks();
 
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [replyTarget, setReplyTarget] = useState<Thread | null>(null);
@@ -56,13 +55,7 @@ export default function ThreadClient({
     }
   };
 
-  const toggleBookmark = (threadId: string) => {
-    setBookmarkedThreads((prev) => {
-      const set = new Set(prev);
-      set.has(threadId) ? set.delete(threadId) : set.add(threadId);
-      return set;
-    });
-  };
+
 
   const handleDeleted = async (threadId: string) => {
     // メインスレッドが削除された場合は/timelineに戻る

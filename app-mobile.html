@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Machip — モバイル</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        colors: { brand:'#1A6B5A','brand-mid':'#2B9E8A','brand-pale':'#E8F5F2' },
+        fontFamily: { sans:["'Hiragino Kaku Gothic ProN'","'Hiragino Sans'","'Noto Sans JP'",'-apple-system','sans-serif'] }
+      }}
+    }
+  </script>
+  <style>
+    *{-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;overflow:hidden}
+    .page{display:none}
+    .page.active{display:flex;flex-direction:column}
+    ::-webkit-scrollbar{display:none}
+    @keyframes slideUp  {from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes slideDown{from{transform:translateY(0);opacity:1}to{transform:translateY(100%);opacity:0}}
+    @keyframes fadeIn   {from{opacity:0}to{opacity:1}}
+    .sheet-in {animation:slideUp  .28s cubic-bezier(.32,.72,0,1) both}
+    .sheet-out{animation:slideDown.22s cubic-bezier(.32,.72,0,1) both}
+    .fade-in  {animation:fadeIn   .18s ease both}
+    input,textarea{font-family:inherit}
+    /* ④ proper map pin */
+    .map-pin-wrap{display:flex;flex-direction:column;align-items:center;cursor:pointer;position:absolute}
+    .map-pin-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 3px 10px rgba(0,0,0,.3);flex-shrink:0}
+    .map-pin-tail{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;margin-top:-1px}
+  </style>
+</head>
+<body class="font-sans text-gray-900 flex flex-col select-none bg-white" style="height:100dvh">
+
+<!-- PAGES -->
+<div class="flex-1 overflow-hidden relative">
+
+<!-- ══════════ MAP PAGE ══════════ -->
+<div id="page-map" class="page absolute inset-0 flex-col bg-white">
+  <div class="flex-shrink-0 bg-white px-4 pt-2 pb-2.5 flex items-center justify-between border-b border-gray-100">
+    <span class="text-lg font-black" style="color:#1A6B5A">Machip</span>
+    <div class="flex gap-2">
+      <!-- search -->
+      <button onclick="openSearch()" class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="#374151" stroke-width="1.5"/><path d="M11 11l3 3" stroke="#374151" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <!-- ① notification bell (通知へ) -->
+      <button onclick="navigate('notifications')" class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center relative">
+        <svg width="18" height="18" viewBox="0 0 22 22" fill="none"><path d="M11 2C7.7 2 5 4.7 5 8V14L3.5 15.5V16H18.5V15.5L17 14V8C17 4.7 14.3 2 11 2Z" stroke="#374151" stroke-width="1.5"/><path d="M9 16C9 17.1 9.9 18 11 18S13 17.1 13 16" stroke="#374151" stroke-width="1.5"/></svg>
+        <span class="notif-bell-badge absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white text-white text-[7px] flex items-center justify-center font-bold">3</span>
+      </button>
+      <!-- avatar -->
+      <div class="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9CA3AF"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="#9CA3AF"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map area – ② proper pin shapes -->
+  <div id="map-area" class="flex-1 relative overflow-hidden" onclick="handleMapTap(event)"
+    style="background:repeating-linear-gradient(0deg,rgba(160,200,180,.18)0,rgba(160,200,180,.18)1px,transparent 1px,transparent 30px),repeating-linear-gradient(90deg,rgba(160,200,180,.18)0,rgba(160,200,180,.18)1px,transparent 1px,transparent 30px),linear-gradient(150deg,#DAEEE6,#C2D9D0)">
+    <!-- roads -->
+    <div class="absolute h-2.5 bg-white/70" style="top:40%;left:0;right:0"></div>
+    <div class="absolute h-1.5 bg-white/55" style="top:66%;left:0;right:0"></div>
+    <div class="absolute w-3 bg-white/70" style="left:30%;top:0;bottom:0"></div>
+    <div class="absolute w-2 bg-white/55" style="left:63%;top:0;bottom:0"></div>
+
+    <!-- Pin: 焚き火 -->
+    <div class="map-pin-wrap" style="top:18%;left:16%" onclick="openMapThread('takibi')">
+      <div class="bg-white rounded-md shadow px-1.5 py-0.5 text-[10px] font-bold mb-1 whitespace-nowrap">焚火イベ🔥</div>
+      <div class="map-pin-circle" style="background:#1A6B5A">🔥</div>
+      <div class="map-pin-tail" style="border-top:10px solid #1A6B5A"></div>
+    </div>
+
+    <!-- Pin: ハンドメイド -->
+    <div class="map-pin-wrap" style="top:48%;left:50%" onclick="openMapThread('handmade')">
+      <div class="bg-white rounded-md shadow px-1.5 py-0.5 text-[10px] font-bold mb-1 whitespace-nowrap">ポップアップ🎨</div>
+      <div class="map-pin-circle" style="background:#F59E0B">🎨</div>
+      <div class="map-pin-tail" style="border-top:10px solid #F59E0B"></div>
+    </div>
+
+    <!-- Pin: カフェ -->
+    <div class="map-pin-wrap" style="top:28%;left:60%" onclick="openMapThread('cafe')">
+      <div class="bg-white rounded-md shadow px-1.5 py-0.5 text-[10px] font-bold mb-1 whitespace-nowrap">コミュニティカフェ☕</div>
+      <div class="map-pin-circle" style="background:#3B82F6">☕</div>
+      <div class="map-pin-tail" style="border-top:10px solid #3B82F6"></div>
+    </div>
+
+    <!-- Pin: まほ会 -->
+    <div class="map-pin-wrap" style="top:60%;left:23%" onclick="openMapThread('maho')">
+      <div class="bg-white rounded-md shadow px-1.5 py-0.5 text-[10px] font-bold mb-1 whitespace-nowrap">まほ会🎉</div>
+      <div class="map-pin-circle" style="background:#8B5CF6">🎉</div>
+      <div class="map-pin-tail" style="border-top:10px solid #8B5CF6"></div>
+    </div>
+
+    <!-- Pin: マッチョ -->
+    <div class="map-pin-wrap" style="top:35%;left:35%" onclick="openMapThread('matcho')">
+      <div class="bg-white rounded-md shadow px-1.5 py-0.5 text-[10px] font-bold mb-1 whitespace-nowrap">マッチョサークル💪</div>
+      <div class="map-pin-circle" style="background:#10B981">💪</div>
+      <div class="map-pin-tail" style="border-top:10px solid #10B981"></div>
+    </div>
+
+    <!-- Map create popup -->
+    <div id="map-create-popup" class="hidden absolute z-20 bg-white rounded-2xl shadow-xl overflow-hidden" style="min-width:210px">
+      <div class="px-4 pt-4 pb-3">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-base">📍</span>
+          <p class="text-sm font-black">ここに掲示板を作成する</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="cancelMapCreate()" class="flex-1 py-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-600">キャンセル</button>
+          <button onclick="confirmMapCreate()" class="flex-1 py-2 rounded-xl text-xs font-bold text-white" style="background:#1A6B5A">作成する</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /page-map -->
+
+<!-- ══════════ TIMELINE (掲示板+AI) PAGE ══════════ -->
+<!-- ④ タイムライン・掲示板を統合。AIボットも含む -->
+<div id="page-timeline" class="page absolute inset-0 flex-col bg-gray-50">
+  <div class="flex-shrink-0 bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100">
+    <h1 class="text-base font-black">掲示板</h1>
+    <div class="flex gap-2">
+      <button onclick="navigate('notifications')" class="relative w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+        <svg width="17" height="17" viewBox="0 0 22 22" fill="none"><path d="M11 2C7.7 2 5 4.7 5 8V14L3.5 15.5V16H18.5V15.5L17 14V8C17 4.7 14.3 2 11 2Z" stroke="#374151" stroke-width="1.5"/><path d="M9 16C9 17.1 9.9 18 11 18S13 17.1 13 16" stroke="#374151" stroke-width="1.5"/></svg>
+        <span class="notif-bell-badge absolute top-0.5 right-0.5 w-3 h-3 bg-red-500 rounded-full border border-white text-white text-[7px] flex items-center justify-center font-bold">3</span>
+      </button>
+    </div>
+  </div>
+  <!-- filter chips -->
+  <div class="flex-shrink-0 bg-white border-b border-gray-100 px-4 py-2 flex gap-2 overflow-x-auto">
+    <button class="tl-chip flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold text-white" style="background:#1A6B5A" data-genre="">すべて</button>
+    <button class="tl-chip flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500" data-genre="イベント・出店">イベント・出店</button>
+    <button class="tl-chip flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500" data-genre="お店">お店</button>
+    <button class="tl-chip flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500" data-genre="コミュニティ">コミュニティ</button>
+    <button class="tl-chip flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500" data-genre="AIニュース">AIニュース</button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+
+    <!-- AI card 1 -->
+    <div class="tl-card bg-white rounded-2xl overflow-hidden shadow-sm" data-genre="AIニュース">
+      <div class="h-36 relative overflow-hidden cursor-pointer" onclick="openTLThread('ai1')" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+        <div class="absolute inset-0 flex items-end p-3">
+          <span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📰 いわき市ニュース</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="flex items-center gap-2.5 mb-2">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-[10px] font-black flex-shrink-0">AI</div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold">AIボット</p><p class="text-xs text-gray-400">2日前</p></div>
+          <span class="text-[10px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">AIニュース</span>
+        </div>
+        <p class="text-sm font-semibold mb-1 cursor-pointer" onclick="openTLThread('ai1')">【ニュース】いわき市、新たな観光キャンペーン「いわき満喫プロジェクト」開始</p>
+        <p class="text-xs text-gray-500 leading-relaxed">いわき市は地域活性化を目的とした新キャンペーンを開始。市内各所でイベント開催予定。</p>
+        <div class="flex items-center pt-3 mt-3 border-t border-gray-50">
+          <div class="flex items-center gap-4">
+            <button onclick="event.stopPropagation();toggleComment('cmnt-ai1')" class="flex items-center gap-1.5 text-xs text-gray-400 active:text-gray-600">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 11V4a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span>3</span></button>
+            <button onclick="event.stopPropagation();toggleLike(this)" data-liked="0" class="flex items-center gap-1.5 text-xs text-gray-400">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 13s-5.5-3.5-5.5-7A3.5 3.5 0 018 4.5 3.5 3.5 0 0113.5 6c0 3.5-5.5 7-5.5 7z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg><span>12</span></button>
+          </div>
+          <button onclick="event.stopPropagation();toggleSave(this)" data-saved="0" class="ml-auto text-gray-400">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 2h8a1 1 0 011 1v11l-5-3-5 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button>
+        </div>
+        <div id="cmnt-ai1" class="hidden mt-2.5" onclick="event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-black" style="background:#1A6B5A">筋</div>
+            <div class="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-1.5"><input type="text" placeholder="コメントを入力…" class="flex-1 bg-transparent text-xs text-gray-700 outline-none"/></div>
+            <button class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#1A6B5A"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-6 12-1.5-5.5L2 8z" fill="white"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- マッチョサークル -->
+    <div class="tl-card bg-white rounded-2xl overflow-hidden shadow-sm" data-genre="コミュニティ">
+      <div class="h-44 relative overflow-hidden cursor-pointer" onclick="openTLThread('matcho')" style="background:linear-gradient(135deg,#d4fc79,#96e6a1)">
+        <div class="absolute inset-0 flex items-center justify-center text-7xl opacity-40">💪</div>
+        <div class="absolute inset-0 flex items-end p-3">
+          <span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📍 平三町目</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="flex items-center gap-2.5 mb-2 cursor-pointer active:opacity-70" onclick="openUserProfile('筋肉マッチョまん','timeline')">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-black flex-shrink-0" style="background:#1A6B5A">筋</div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold">筋肉マッチョまん</p><p class="text-xs text-gray-400">2025/12/04</p></div>
+          <span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">コミュニティ</span>
+        </div>
+        <p class="text-sm font-semibold mb-1 cursor-pointer" onclick="openTLThread('matcho')">マッチョサークルつくりませんか？</p>
+        <p class="text-xs text-gray-500 leading-relaxed">一緒にトレーニングできる仲間がいない！！！と思っていませんか？パーソナルトレーナーとかじゃなくて、一緒に高め合える仲間が欲しいんです！</p>
+        <p class="text-xs mt-1.5" style="color:#2B9E8A">🔗 http://______instagram</p>
+        <div class="flex items-center pt-3 mt-2 border-t border-gray-50">
+          <div class="flex items-center gap-4">
+            <button onclick="event.stopPropagation();toggleComment('cmnt-matcho')" class="flex items-center gap-1.5 text-xs text-gray-400 active:text-gray-600">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 11V4a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span>8</span></button>
+            <button onclick="event.stopPropagation();toggleLike(this)" data-liked="1" class="flex items-center gap-1.5 text-xs" style="color:#EF4444">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 13s-5.5-3.5-5.5-7A3.5 3.5 0 018 4.5 3.5 3.5 0 0113.5 6c0 3.5-5.5 7-5.5 7z" fill="#EF4444" stroke="#EF4444" stroke-width="1.2"/></svg><span>24</span></button>
+          </div>
+          <button onclick="event.stopPropagation();toggleSave(this)" data-saved="0" class="ml-auto text-gray-400">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 2h8a1 1 0 011 1v11l-5-3-5 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button>
+        </div>
+        <div id="cmnt-matcho" class="hidden mt-2.5" onclick="event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-black" style="background:#1A6B5A">筋</div>
+            <div class="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-1.5"><input type="text" placeholder="コメントを入力…" class="flex-1 bg-transparent text-xs text-gray-700 outline-none"/></div>
+            <button class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#1A6B5A"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-6 12-1.5-5.5L2 8z" fill="white"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ハンドメイド -->
+    <div class="tl-card bg-white rounded-2xl overflow-hidden shadow-sm" data-genre="お店">
+      <div class="h-40 relative overflow-hidden cursor-pointer" onclick="openTLThread('handmade')" style="background:linear-gradient(135deg,#fccb90,#d57eeb)">
+        <div class="absolute inset-0 flex items-center justify-center text-7xl opacity-35">🎨</div>
+        <div class="absolute inset-0 flex items-end p-3">
+          <span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📍 平三町目</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="flex items-center gap-2.5 mb-2 cursor-pointer active:opacity-70" onclick="openUserProfile('ハンドメイドマッチョ','timeline')">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-amber-400 flex items-center justify-center text-white text-[10px] font-black flex-shrink-0">ハ</div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold">ハンドメイドマッチョ</p><p class="text-xs text-gray-400">2025/12/04</p></div>
+          <span class="text-[10px] font-bold bg-pink-50 text-pink-600 px-2 py-0.5 rounded-full">お店</span>
+        </div>
+        <p class="text-sm font-semibold mb-1 cursor-pointer" onclick="openTLThread('handmade')">ハンドメイドポップアップ開催！</p>
+        <p class="text-xs text-gray-500 leading-relaxed">週末はお家でワークショップはいかがですか？参加費500円！詳細はプロフィールのリンクから。</p>
+        <div class="flex items-center pt-3 mt-2 border-t border-gray-50">
+          <div class="flex items-center gap-4">
+            <button onclick="event.stopPropagation();toggleComment('cmnt-hand')" class="flex items-center gap-1.5 text-xs text-gray-400 active:text-gray-600">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 11V4a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span>5</span></button>
+            <button onclick="event.stopPropagation();toggleLike(this)" data-liked="0" class="flex items-center gap-1.5 text-xs text-gray-400">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 13s-5.5-3.5-5.5-7A3.5 3.5 0 018 4.5 3.5 3.5 0 0113.5 6c0 3.5-5.5 7-5.5 7z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg><span>11</span></button>
+          </div>
+          <button onclick="event.stopPropagation();toggleSave(this)" data-saved="0" class="ml-auto text-gray-400">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 2h8a1 1 0 011 1v11l-5-3-5 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button>
+        </div>
+        <div id="cmnt-hand" class="hidden mt-2.5" onclick="event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-black" style="background:#1A6B5A">筋</div>
+            <div class="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-1.5"><input type="text" placeholder="コメントを入力…" class="flex-1 bg-transparent text-xs text-gray-700 outline-none"/></div>
+            <button class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#1A6B5A"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-6 12-1.5-5.5L2 8z" fill="white"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 焚き火 -->
+    <div class="tl-card bg-white rounded-2xl overflow-hidden shadow-sm" data-genre="イベント・出店">
+      <div class="h-44 relative overflow-hidden cursor-pointer" onclick="openTLThread('takibi')" style="background:linear-gradient(135deg,#f83600,#f9d423)">
+        <div class="absolute inset-0 flex items-center justify-center text-7xl opacity-35">🔥</div>
+        <div class="absolute inset-0 flex items-end p-3">
+          <span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📍 平三町目 · 18:00〜</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="flex items-center gap-2.5 mb-2 cursor-pointer active:opacity-70" onclick="openUserProfile('焚き火のにーちゃん','timeline')">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-[10px] font-black flex-shrink-0">焚</div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold">焚き火のにーちゃん</p><p class="text-xs text-gray-400">2025/12/04</p></div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:#E8F5F2;color:#1A6B5A">イベント・出店</span>
+        </div>
+        <p class="text-sm font-semibold mb-1 cursor-pointer" onclick="openTLThread('takibi')">18:00〜 焚き火します！暇まりにおいで</p>
+        <p class="text-xs text-gray-500 leading-relaxed">お酒やおつまみ片手にどうぞゆるりとご参加ください！0次会の雰囲気で気軽にどうぞ。持ち寄りで何か持って来てくれると嬉しいです！</p>
+        <div class="flex items-center pt-3 mt-2 border-t border-gray-50">
+          <div class="flex items-center gap-4">
+            <button onclick="event.stopPropagation();toggleComment('cmnt-taki')" class="flex items-center gap-1.5 text-xs text-gray-400 active:text-gray-600">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 11V4a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span>7</span></button>
+            <button onclick="event.stopPropagation();toggleLike(this)" data-liked="0" class="flex items-center gap-1.5 text-xs text-gray-400">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 13s-5.5-3.5-5.5-7A3.5 3.5 0 018 4.5 3.5 3.5 0 0113.5 6c0 3.5-5.5 7-5.5 7z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg><span>18</span></button>
+          </div>
+          <button onclick="event.stopPropagation();toggleSave(this)" data-saved="0" class="ml-auto text-gray-400">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 2h8a1 1 0 011 1v11l-5-3-5 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button>
+        </div>
+        <div id="cmnt-taki" class="hidden mt-2.5" onclick="event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-black" style="background:#1A6B5A">筋</div>
+            <div class="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-1.5"><input type="text" placeholder="コメントを入力…" class="flex-1 bg-transparent text-xs text-gray-700 outline-none"/></div>
+            <button class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#1A6B5A"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-6 12-1.5-5.5L2 8z" fill="white"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI card 2 -->
+    <div class="tl-card bg-white rounded-2xl overflow-hidden shadow-sm" data-genre="AIニュース">
+      <div class="h-36 relative overflow-hidden cursor-pointer" onclick="openTLThread('ai2')" style="background:linear-gradient(135deg,#0f2027,#203a43,#2c5364)">
+        <div class="absolute inset-0 flex items-center justify-center text-6xl opacity-25">🐢</div>
+        <div class="absolute inset-0 flex items-end p-3">
+          <span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📰 自然ニュース</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="flex items-center gap-2.5 mb-2">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-[10px] font-black flex-shrink-0">AI</div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold">AIボット</p><p class="text-xs text-gray-400">2日前</p></div>
+          <span class="text-[10px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">AIニュース</span>
+        </div>
+        <p class="text-sm font-semibold mb-1 cursor-pointer" onclick="openTLThread('ai2')">【ニュース】いわき市の海岸でアカウミガメの産卵確認</p>
+        <p class="text-xs text-gray-500 leading-relaxed">今年初 いわき市の四倉海岸で、アカウミガメの産卵が確認されました。</p>
+        <div class="flex items-center pt-3 mt-2 border-t border-gray-50">
+          <div class="flex items-center gap-4">
+            <button onclick="event.stopPropagation();toggleComment('cmnt-ai2')" class="flex items-center gap-1.5 text-xs text-gray-400 active:text-gray-600">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 11V4a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span>2</span></button>
+            <button onclick="event.stopPropagation();toggleLike(this)" data-liked="0" class="flex items-center gap-1.5 text-xs text-gray-400">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 13s-5.5-3.5-5.5-7A3.5 3.5 0 018 4.5 3.5 3.5 0 0113.5 6c0 3.5-5.5 7-5.5 7z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg><span>6</span></button>
+          </div>
+          <button onclick="event.stopPropagation();toggleSave(this)" data-saved="0" class="ml-auto text-gray-400">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 2h8a1 1 0 011 1v11l-5-3-5 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button>
+        </div>
+        <div id="cmnt-ai2" class="hidden mt-2.5" onclick="event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-black" style="background:#1A6B5A">筋</div>
+            <div class="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-1.5"><input type="text" placeholder="コメントを入力…" class="flex-1 bg-transparent text-xs text-gray-700 outline-none"/></div>
+            <button class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#1A6B5A"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-6 12-1.5-5.5L2 8z" fill="white"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- コミュニティカフェ -->
+    <div class="tl-card bg-white rounded-2xl overflow-hidden shadow-sm" data-genre="コミュニティ">
+      <div class="h-40 relative overflow-hidden cursor-pointer" onclick="openTLThread('cafe')" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb)">
+        <div class="absolute inset-0 flex items-center justify-center text-7xl opacity-35">☕</div>
+        <div class="absolute inset-0 flex items-end p-3">
+          <span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📍 平三町目</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="flex items-center gap-2.5 mb-2 cursor-pointer active:opacity-70" onclick="openUserProfile('マッチョニャンコ','timeline')">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-[10px] font-black flex-shrink-0">マ</div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold">マッチョニャンコ</p><p class="text-xs text-gray-400">2025/12/04</p></div>
+          <span class="text-[10px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">コミュニティ</span>
+        </div>
+        <p class="text-sm font-semibold mb-1 cursor-pointer" onclick="openTLThread('cafe')">コミュニティカフェ始めたい…興味ある人いませんか？</p>
+        <p class="text-xs text-gray-500 leading-relaxed">学生も気軽に入れるコミュニティカフェみたいな空間を作りたいです。仲間を募集中！</p>
+        <div class="flex items-center pt-3 mt-2 border-t border-gray-50">
+          <div class="flex items-center gap-4">
+            <button onclick="event.stopPropagation();toggleComment('cmnt-cafe')" class="flex items-center gap-1.5 text-xs text-gray-400 active:text-gray-600">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 11V4a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span>4</span></button>
+            <button onclick="event.stopPropagation();toggleLike(this)" data-liked="0" class="flex items-center gap-1.5 text-xs text-gray-400">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 13s-5.5-3.5-5.5-7A3.5 3.5 0 018 4.5 3.5 3.5 0 0113.5 6c0 3.5-5.5 7-5.5 7z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg><span>9</span></button>
+          </div>
+          <button onclick="event.stopPropagation();toggleSave(this)" data-saved="0" class="ml-auto text-gray-400">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 2h8a1 1 0 011 1v11l-5-3-5 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button>
+        </div>
+        <div id="cmnt-cafe" class="hidden mt-2.5" onclick="event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-black" style="background:#1A6B5A">筋</div>
+            <div class="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-1.5"><input type="text" placeholder="コメントを入力…" class="flex-1 bg-transparent text-xs text-gray-700 outline-none"/></div>
+            <button class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#1A6B5A"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-6 12-1.5-5.5L2 8z" fill="white"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-4"></div>
+  </div>
+</div><!-- /page-timeline -->
+
+<!-- ══════════ THREAD DETAIL PAGE ══════════ -->
+<div id="page-thread" class="page absolute inset-0 flex-col bg-gray-50">
+  <div class="flex-shrink-0 bg-white px-4 py-3 flex items-center gap-3 border-b border-gray-100">
+    <button onclick="history.go(-1)||navigate('timeline')" id="thread-back" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="#374151" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <h1 id="thread-title" class="text-sm font-black truncate flex-1">マッチョサークルつくりませんか？</h1>
+  </div>
+  <div class="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+    <!-- Main post with image -->
+    <div class="bg-white rounded-2xl overflow-hidden shadow-sm">
+      <div id="thread-img" class="h-52 relative overflow-hidden" style="background:linear-gradient(135deg,#d4fc79,#96e6a1)">
+        <div class="absolute inset-0 flex items-center justify-center text-8xl opacity-35">💪</div>
+        <div class="absolute inset-0 flex items-end p-3">
+          <span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📍 平三町目</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="flex items-center gap-2.5 mb-3">
+          <div id="thread-avatar" class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-black flex-shrink-0" style="background:#1A6B5A">筋</div>
+          <div>
+            <p id="thread-user" class="text-sm font-bold">筋肉マッチョまん</p>
+            <p id="thread-meta" class="text-xs text-gray-400">平三町目 · 2025/12/04</p>
+          </div>
+          <span id="thread-tag" class="ml-auto text-[10px] font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">コミュニティ</span>
+        </div>
+        <p id="thread-body" class="text-sm leading-relaxed text-gray-700 mb-3">一緒にトレーニングできる仲間がいない！！！と思っていませんか？パーソナルトレーナーとかじゃなくて、一緒に高め合える仲間が欲しいんです！コミュニティ作りたいな〜と思っています。</p>
+        <p id="thread-link" class="text-xs mb-3" style="color:#2B9E8A"></p>
+        <div class="flex items-center pt-3 border-t border-gray-50">
+          <div class="flex items-center gap-4">
+            <button class="flex items-center gap-1.5 text-xs text-gray-400">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 12.5V4a1 1 0 011-1h10a1 1 0 011 1v8.5L11 11H5L2 12.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+              <span id="thread-comment-count">8</span>
+            </button>
+            <button id="thread-like-btn" onclick="toggleLike(this)" data-liked="0" class="flex items-center gap-1.5 text-xs text-gray-400">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 13s-5.5-3.5-5.5-7A3.5 3.5 0 018 4.5 3.5 3.5 0 0113.5 6c0 3.5-5.5 7-5.5 7z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+              <span id="thread-like-count">24</span>
+            </button>
+          </div>
+          <button id="thread-save-btn" onclick="toggleSave(this)" data-saved="0" class="ml-auto text-gray-400">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M4 2h8a1 1 0 011 1v11l-5-3-5 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <p class="text-xs font-black text-gray-400 px-1">コメント (<span id="thread-comment-label">0</span>)</p>
+    <div id="thread-comments" class="space-y-3"></div>
+    <div class="h-4"></div>
+  </div>
+  <div class="flex-shrink-0 bg-white border-t border-gray-100 px-4 py-3 flex items-center gap-2.5">
+    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0" style="background:#1A6B5A">筋</div>
+    <div class="flex-1 bg-gray-100 rounded-full px-4 py-2.5">
+      <input type="text" placeholder="コメントを入力…" class="w-full bg-transparent text-sm text-gray-700 outline-none"/>
+    </div>
+    <button class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background:#1A6B5A">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-6 12-1.5-5.5L2 8z" fill="white"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════ NOTIFICATIONS PAGE ══════════ -->
+<div id="page-notifications" class="page absolute inset-0 flex-col bg-white">
+  <div class="flex-shrink-0 px-4 py-3 flex items-center gap-3 border-b border-gray-100">
+    <button onclick="navigate('map')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="#374151" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <h1 class="text-xl font-black flex-1">通知</h1>
+    <button onclick="markAllRead()" class="text-xs font-bold rounded-full px-3 py-1 border" style="color:#1A6B5A;border-color:#1A6B5A">すべて既読</button>
+  </div>
+  <div class="flex-1 overflow-y-auto">
+    <p class="text-sm font-bold text-gray-500 px-4 pt-4 pb-2">今日</p>
+    <div class="notif-unread flex items-start gap-3 px-4 py-4 border-b border-gray-50 cursor-pointer active:opacity-80" style="background:#E8F5F2" onclick="markOneRead(this);openUserProfile('筋肉マッチョまん','notifications')">
+      <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-base flex-shrink-0" style="background:#1A6B5A">筋</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-gray-800 leading-snug mb-1"><span class="font-bold">筋肉マッチョまん</span> さんがコメントしました</p>
+        <p class="text-xs text-gray-500">「宅トレ民です。ゆるっと繋がれるならい…</p>
+      </div>
+      <div class="flex flex-col items-end gap-2 flex-shrink-0 ml-2">
+        <span class="text-xs text-gray-400">14:22</span>
+        <div class="notif-dot w-2.5 h-2.5 rounded-full" style="background:#2B9E8A"></div>
+      </div>
+    </div>
+    <div class="notif-unread flex items-start gap-3 px-4 py-4 border-b border-gray-50 cursor-pointer active:opacity-80" style="background:#E8F5F2" onclick="markOneRead(this);openUserProfile('ニャンコの帝王','notifications')">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-black text-base flex-shrink-0">ニ</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-gray-800 leading-snug mb-1"><span class="font-bold">ニャンコの帝王</span> さんがいいねしました</p>
+        <p class="text-xs text-gray-500">マッチョサークルつくりませんか？</p>
+      </div>
+      <div class="flex flex-col items-end gap-2 flex-shrink-0 ml-2">
+        <span class="text-xs text-gray-400">10:05</span>
+        <div class="notif-dot w-2.5 h-2.5 rounded-full" style="background:#2B9E8A"></div>
+      </div>
+    </div>
+    <div class="notif-unread flex items-start gap-3 px-4 py-4 border-b border-gray-50 cursor-pointer active:opacity-80" style="background:#E8F5F2" onclick="markOneRead(this);openUserProfile('システム管理者','notifications')">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-black text-base flex-shrink-0">シ</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-gray-800 leading-snug mb-1"><span class="font-bold">システム管理者</span> から新しいイベントが登録されました</p>
+        <p class="text-xs text-gray-500">持ち寄りスナック店🍟 · 2026年4月16日</p>
+      </div>
+      <div class="flex flex-col items-end gap-2 flex-shrink-0 ml-2">
+        <span class="text-xs text-gray-400">08:30</span>
+        <div class="notif-dot w-2.5 h-2.5 rounded-full" style="background:#2B9E8A"></div>
+      </div>
+    </div>
+    <p class="text-sm font-bold text-gray-500 px-4 pt-5 pb-2">昨日</p>
+    <div class="flex items-start gap-3 px-4 py-4 border-b border-gray-50 cursor-pointer active:opacity-80" onclick="openUserProfile('マッスル杉本バーニーズ','notifications')">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-black text-base flex-shrink-0">マ</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-gray-800 leading-snug mb-1"><span class="font-bold">マッスル杉本バーニーズ</span> さんがコメントしました</p>
+        <p class="text-xs text-gray-500">「どんなコミュニティ？ラインとか？」</p>
+      </div>
+      <span class="text-xs text-gray-400 flex-shrink-0 ml-2 mt-0.5">昨日</span>
+    </div>
+    <div class="flex items-start gap-3 px-4 py-4 border-b border-gray-50 cursor-pointer active:opacity-80" onclick="openUserProfile('ハンドメイドマッチョ','notifications')">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-amber-400 flex items-center justify-center text-white font-black text-base flex-shrink-0">ハ</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-gray-800 leading-snug mb-1"><span class="font-bold">ハンドメイドマッチョ</span> さんがいいねしました</p>
+        <p class="text-xs text-gray-500">18:00〜 焚き火します！</p>
+      </div>
+      <span class="text-xs text-gray-400 flex-shrink-0 ml-2 mt-0.5">昨日</span>
+    </div>
+    <p class="text-sm font-bold text-gray-500 px-4 pt-5 pb-2">過去7日間</p>
+    <div class="flex items-start gap-3 px-4 py-4 border-b border-gray-50 cursor-pointer active:opacity-80" onclick="openUserProfile('さくらもち','notifications')">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-black text-base flex-shrink-0">さ</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-gray-800 leading-snug"><span class="font-bold">さくらもち</span> さんがフォローしました</p>
+      </div>
+      <span class="text-xs text-gray-400 flex-shrink-0 ml-2 mt-0.5">5日前</span>
+    </div>
+    <div class="h-4"></div>
+  </div>
+</div>
+
+<!-- ══════════ CALENDAR PAGE ══════════ -->
+<div id="page-calendar" class="page absolute inset-0 flex-col bg-white">
+  <div class="flex-shrink-0 px-4 py-3 flex items-center gap-3 border-b border-gray-100">
+    <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#E8F5F2">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="#1A6B5A" stroke-width="1.3"/><path d="M2 7h12M6 2v2M10 2v2" stroke="#1A6B5A" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </div>
+    <h1 class="text-base font-black">カレンダー検索</h1>
+  </div>
+  <p class="text-xs text-gray-400 px-4 pt-2">期間を選択してスレッドを検索できます</p>
+  <div class="flex-1 overflow-y-auto">
+    <div class="px-3 pt-3">
+      <div class="flex items-center justify-between px-1 mb-3">
+        <button class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">«</button>
+        <button class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">‹</button>
+        <span class="text-sm font-black">2026年5月</span>
+        <button class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">›</button>
+        <button class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">»</button>
+      </div>
+      <div class="grid grid-cols-7 mb-1">
+        <div class="text-center py-1 text-xs font-bold text-gray-400">月</div><div class="text-center py-1 text-xs font-bold text-gray-400">火</div><div class="text-center py-1 text-xs font-bold text-gray-400">水</div><div class="text-center py-1 text-xs font-bold text-gray-400">木</div><div class="text-center py-1 text-xs font-bold text-gray-400">金</div>
+        <div class="text-center py-1 text-xs font-bold text-blue-500">土</div><div class="text-center py-1 text-xs font-bold text-red-500">日</div>
+      </div>
+      <div class="grid grid-cols-7 gap-y-0.5">
+        <div class="text-center py-2 text-xs text-gray-300">27</div><div class="text-center py-2 text-xs text-gray-300">28</div><div class="text-center py-2 text-xs text-gray-300">29</div><div class="text-center py-2 text-xs text-gray-300">30</div>
+        <div class="text-center py-2 text-xs text-gray-600 cursor-pointer">1</div><div class="text-center py-2 text-xs text-blue-500 cursor-pointer">2</div><div class="text-center py-2 text-xs text-red-500 cursor-pointer">3</div>
+        <div class="text-center py-2 text-xs text-red-500 cursor-pointer">4</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">5</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">6</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">7</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">8</div>
+        <div class="flex flex-col items-center py-1 cursor-pointer" onclick="showCalPreview(9)"><span class="text-xs text-blue-500 font-bold">9</span><div class="w-1.5 h-1.5 rounded-full mt-0.5" style="background:#1A6B5A"></div></div>
+        <div class="text-center py-2 text-xs text-red-500 cursor-pointer">10</div>
+        <div class="text-center py-2 text-xs text-red-500 cursor-pointer">11</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">12</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">13</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">14</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">15</div>
+        <div class="flex items-center justify-center py-1 cursor-pointer" onclick="showCalPreview(16)"><span class="text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full text-white" style="background:#1A6B5A">16</span></div>
+        <div class="text-center py-2 text-xs text-red-500 cursor-pointer">17</div>
+        <div class="text-center py-2 text-xs text-red-500 cursor-pointer">18</div>
+        <div class="flex flex-col items-center py-1 cursor-pointer" onclick="showCalPreview(19)"><span class="text-xs text-gray-600">19</span><div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5"></div></div>
+        <div class="text-center py-2 text-xs text-gray-600 cursor-pointer">20</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">21</div>
+        <div class="flex flex-col items-center py-1 cursor-pointer" onclick="showCalPreview(22)"><span class="text-xs text-gray-600">22</span><div class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-0.5"></div></div>
+        <div class="text-center py-2 text-xs text-blue-500 cursor-pointer">23</div><div class="text-center py-2 text-xs text-red-500 cursor-pointer">24</div>
+        <div class="text-center py-2 text-xs text-red-500 cursor-pointer">25</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">26</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">27</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">28</div><div class="text-center py-2 text-xs text-gray-600 cursor-pointer">29</div>
+        <div class="text-center py-2 text-xs text-blue-500 cursor-pointer">30</div><div class="text-center py-2 text-xs text-red-500 cursor-pointer">31</div>
+      </div>
+    </div>
+    <div class="px-4 pt-5 pb-4">
+      <p class="text-sm font-black mb-3">検索結果</p>
+      <div class="space-y-2">
+        <div class="flex gap-3 items-start p-3.5 bg-gray-50 rounded-xl cursor-pointer active:opacity-70" onclick="showCalPreview(9)">
+          <div class="w-1 self-stretch rounded-full flex-shrink-0" style="background:#1A6B5A"></div>
+          <div class="flex-1"><p class="text-sm font-bold">持ち寄りスナック店🍟</p><p class="text-xs text-gray-400 mt-0.5">5月9日 · 平三町目</p></div>
+          <svg class="text-gray-300 flex-shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flex gap-3 items-start p-3.5 bg-gray-50 rounded-xl cursor-pointer active:opacity-70" onclick="showCalPreview(19)">
+          <div class="w-1 self-stretch rounded-full bg-blue-500 flex-shrink-0"></div>
+          <div class="flex-1"><p class="text-sm font-bold">マッチョ交流会</p><p class="text-xs text-gray-400 mt-0.5">5月19日 · 平三町目</p></div>
+          <svg class="text-gray-300 flex-shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flex gap-3 items-start p-3.5 bg-gray-50 rounded-xl cursor-pointer active:opacity-70" onclick="showCalPreview(22)">
+          <div class="w-1 self-stretch rounded-full bg-amber-400 flex-shrink-0"></div>
+          <div class="flex-1"><p class="text-sm font-bold">ハンドメイドポップアップ</p><p class="text-xs text-gray-400 mt-0.5">5月22日 · 平三町目</p></div>
+          <svg class="text-gray-300 flex-shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <!-- ③ calendar preview card with "詳細を見る" linking to full thread -->
+      <div id="cal-preview" class="hidden mt-4 bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MYPAGE PAGE ══════════ -->
+<div id="page-mypage" class="page absolute inset-0 flex-col bg-gray-50">
+  <div class="flex-shrink-0 bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100">
+    <h1 class="text-base font-black">マイページ</h1>
+    <button onclick="openSettings()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="4" r="1.3" fill="#374151"/><circle cx="8" cy="8" r="1.3" fill="#374151"/><circle cx="8" cy="12" r="1.3" fill="#374151"/></svg>
+    </button>
+  </div>
+  <div class="flex-1 overflow-y-auto">
+    <div class="bg-white px-4 pt-7 pb-5 flex flex-col items-center border-b-4 border-gray-50">
+      <div class="w-20 h-20 rounded-full bg-gray-200 border-4 border-white shadow-md flex items-center justify-center mb-5">
+        <svg width="36" height="36" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="18" r="10" fill="#9CA3AF"/><path d="M6 44c0-10 8-17 18-17s18 7 18 17" fill="#9CA3AF"/></svg>
+      </div>
+      <div class="w-full space-y-2.5 mb-5">
+        <div class="bg-gray-50 rounded-xl px-4 py-3">
+          <p class="text-xs text-gray-400 mb-0.5">ニックネーム</p>
+          <p class="text-sm font-bold">筋肉マッチョまん</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl px-4 py-3">
+          <p class="text-xs text-gray-400 mb-0.5">所属</p>
+          <p class="text-sm">平三町目</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl px-4 py-3">
+          <p class="text-xs text-gray-400 mb-0.5">マイリンク</p>
+          <a href="http://muscle___instagram" class="text-sm font-medium break-all" style="color:#2B9E8A">http://muscle___instagram</a>
+        </div>
+        <div class="bg-gray-50 rounded-xl px-4 py-3">
+          <p class="text-xs text-gray-400 mb-0.5">自己紹介</p>
+          <p class="text-sm text-gray-600 leading-relaxed">よろしくお願いします</p>
+        </div>
+      </div>
+      <button onclick="navigate('edit-profile')" class="w-full h-11 bg-gray-900 text-white rounded-xl text-sm font-bold">プロフィールを編集</button>
+    </div>
+    <div class="bg-white mt-2">
+      <div class="flex border-b border-gray-100">
+        <button id="mptab-mine"      onclick="switchMyTab('mine')"      class="flex-1 py-3 text-xs font-bold border-b-2" style="color:#1A6B5A;border-color:#1A6B5A">過去の投稿</button>
+        <button id="mptab-saved"     onclick="switchMyTab('saved')"     class="flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-gray-400">保存した投稿</button>
+        <button id="mptab-following" onclick="switchMyTab('following')" class="flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-gray-400">フォロー中</button>
+      </div>
+      <div id="mp-mine" class="px-4 pt-4 pb-3 space-y-2.5">
+        <div class="flex gap-3 items-center p-3 bg-gray-50 rounded-xl cursor-pointer active:opacity-70">
+          <div class="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden relative" style="background:linear-gradient(135deg,#d4fc79,#96e6a1)"><div class="absolute inset-0 flex items-center justify-center text-2xl opacity-50">💪</div></div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold truncate">マッチョサークル参加者募集！</p><div class="flex items-center gap-1.5 mt-0.5"><span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full">コミュニティ</span><span class="text-xs text-gray-400">12/04</span></div></div>
+          <svg class="text-gray-300 flex-shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flex gap-3 items-center p-3 bg-gray-50 rounded-xl cursor-pointer active:opacity-70">
+          <div class="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden relative" style="background:linear-gradient(135deg,#f83600,#f9d423)"><div class="absolute inset-0 flex items-center justify-center text-2xl opacity-50">🔥</div></div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold truncate">焚き火イベ🔥 18時から！</p><div class="flex items-center gap-1.5 mt-0.5"><span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="background:#E8F5F2;color:#1A6B5A">イベント</span><span class="text-xs text-gray-400">11/28</span></div></div>
+          <svg class="text-gray-300 flex-shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div id="mp-following" class="hidden px-4 pt-4 pb-3">
+        <div id="following-list" class="space-y-2.5"></div>
+        <div id="following-empty" class="flex flex-col items-center justify-center py-10 text-gray-400 gap-2">
+          <span class="text-3xl">👥</span>
+          <p class="text-sm">まだフォローしていません</p>
+        </div>
+      </div>
+      <div id="mp-saved" class="hidden px-4 pt-4 pb-3 space-y-2.5">
+        <div class="flex gap-3 items-center p-3 bg-gray-50 rounded-xl cursor-pointer active:opacity-70">
+          <div class="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden relative" style="background:linear-gradient(135deg,#fccb90,#d57eeb)"><div class="absolute inset-0 flex items-center justify-center text-2xl opacity-50">🎨</div></div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold truncate">ハンドメイドポップアップ開催！</p><div class="flex items-center gap-1.5 mt-0.5"><span class="text-[10px] font-bold bg-pink-50 text-pink-600 px-1.5 py-0.5 rounded-full">お店</span><span class="text-xs text-gray-400">12/04</span></div></div>
+          <svg class="text-gray-300 flex-shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flex gap-3 items-center p-3 bg-gray-50 rounded-xl cursor-pointer active:opacity-70">
+          <div class="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden relative" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb)"><div class="absolute inset-0 flex items-center justify-center text-2xl opacity-50">☕</div></div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold truncate">コミュニティカフェ始めたい…</p><div class="flex items-center gap-1.5 mt-0.5"><span class="text-[10px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">つぶやき</span><span class="text-xs text-gray-400">12/04</span></div></div>
+          <svg class="text-gray-300 flex-shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="h-4"></div>
+  </div>
+</div>
+
+<!-- ══════════ USER PROFILE PAGE (他ユーザー) ══════════ -->
+<div id="page-user-profile" class="page absolute inset-0 flex-col bg-gray-50">
+  <div class="flex-shrink-0 bg-white px-4 py-3 flex items-center gap-3 border-b border-gray-100">
+    <button id="uprofile-back" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="#374151" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <h1 class="text-sm font-black flex-1">投稿者プロフィール</h1>
+  </div>
+  <div class="flex-1 overflow-y-auto">
+    <div class="bg-white px-4 pt-7 pb-6 flex flex-col items-center border-b-4 border-gray-50">
+      <div id="uprofile-avatar" class="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-black mb-3 shadow-md">筋</div>
+      <p id="uprofile-name" class="text-base font-black mb-1">筋肉マッチョまん</p>
+      <p id="uprofile-affiliation-top" class="text-xs text-gray-400 mb-4">平三町目</p>
+      <p id="uprofile-bio" class="text-sm text-gray-600 text-center leading-relaxed px-2"></p>
+      <button id="follow-btn" onclick="toggleFollow()" class="mt-4 px-8 py-2 rounded-full text-sm font-bold" style="background:#1A6B5A;color:#fff">フォローする</button>
+    </div>
+    <div class="bg-white mt-2 px-4 py-1">
+      <div id="uprofile-link-wrap" class="flex gap-3 items-center py-3.5 border-b border-gray-50">
+        <span class="text-xs text-gray-400 w-20 flex-shrink-0">マイリンク</span>
+        <a id="uprofile-link" href="#" class="text-sm flex-1 truncate" style="color:#2B9E8A"></a>
+      </div>
+      <div class="flex gap-3 items-center py-3.5">
+        <span class="text-xs text-gray-400 w-20 flex-shrink-0">所属</span>
+        <span id="uprofile-org" class="text-sm text-gray-700"></span>
+      </div>
+    </div>
+    <div class="bg-white mt-2 px-4 pt-3 pb-3">
+      <p class="text-xs font-black text-gray-400 mb-3">この投稿者の投稿</p>
+      <div class="flex gap-3 items-center p-3 bg-gray-50 rounded-xl cursor-pointer active:opacity-70" onclick="navigate('timeline')">
+        <div id="uprofile-post-img" class="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden relative"></div>
+        <div class="flex-1 min-w-0">
+          <p id="uprofile-post-title" class="text-sm font-bold truncate"></p>
+          <span id="uprofile-post-tag" class="text-[10px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full mt-0.5 inline-block"></span>
+        </div>
+        <svg class="text-gray-300 flex-shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="h-4"></div>
+  </div>
+</div>
+
+<!-- ══════════ EDIT PROFILE PAGE ══════════ -->
+<div id="page-edit-profile" class="page absolute inset-0 flex-col bg-gray-50">
+  <div class="flex-shrink-0 bg-white px-4 py-3 flex items-center gap-3 border-b border-gray-100">
+    <button onclick="navigate('mypage')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="#374151" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <h1 class="text-sm font-black flex-1">プロフィールを編集</h1>
+  </div>
+  <div class="flex-1 overflow-y-auto px-4 py-5">
+    <div class="flex justify-center mb-6">
+      <div class="relative">
+        <div class="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
+          <svg width="36" height="36" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="18" r="10" fill="#9CA3AF"/><path d="M6 44c0-10 8-17 18-17s18 7 18 17" fill="#9CA3AF"/></svg>
+        </div>
+        <div class="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white" style="background:#1A6B5A">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 12V10L10.5 1.5L12.5 3.5L4 12H2Z" stroke="white" stroke-width="1.3" stroke-linejoin="round"/><path d="M9 3l2 2" stroke="white" stroke-width="1.3"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1.5">ニックネーム</label>
+        <input type="text" value="筋肉マッチョまん" class="w-full h-11 border border-gray-200 rounded-xl px-4 text-sm text-gray-700 outline-none bg-white"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1.5">所属 <span class="font-normal text-gray-400">（自由記入）</span></label>
+        <input type="text" value="平三町目" class="w-full h-11 border border-gray-200 rounded-xl px-4 text-sm text-gray-700 outline-none bg-white"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-2">マイリンク <span class="font-normal text-gray-400">（SNSなど）</span></label>
+        <div class="space-y-2">
+          <div class="bg-white border border-gray-200 rounded-xl px-4 h-11 flex items-center">
+            <input type="url" placeholder="Instagram URL" value="http://muscle___instagram" class="flex-1 bg-transparent text-sm text-gray-700 outline-none"/>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl px-4 h-11 flex items-center">
+            <input type="url" placeholder="X (Twitter) URL" class="flex-1 bg-transparent text-sm text-gray-700 outline-none"/>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl px-4 h-11 flex items-center">
+            <input type="url" placeholder="その他リンク" class="flex-1 bg-transparent text-sm text-gray-700 outline-none"/>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1.5">自己紹介</label>
+        <textarea rows="4" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none resize-none leading-relaxed bg-white">よろしくお願いします</textarea>
+      </div>
+      <button onclick="navigate('mypage')" class="w-full h-12 rounded-full text-white text-sm font-black" style="background:#1A6B5A">保存する</button>
+      <div class="h-2"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /pages wrapper -->
+
+<!-- SEARCH OVERLAY -->
+<div id="search-overlay" class="hidden fixed inset-0 z-40 flex flex-col bg-white">
+  <div class="flex-shrink-0 px-4 pt-3 pb-3 border-b border-gray-100">
+    <div class="flex items-center gap-3">
+      <div class="flex-1 flex items-center gap-2 bg-gray-100 rounded-2xl px-4 py-2.5">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="#9CA3AF" stroke-width="1.5"/><path d="M11 11l3 3" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input id="search-input" type="text" placeholder="キーワードで検索…" oninput="filterSearch()" class="flex-1 bg-transparent text-sm text-gray-700 outline-none"/>
+      </div>
+      <button onclick="closeSearch()" class="text-sm font-bold flex-shrink-0" style="color:#1A6B5A">キャンセル</button>
+    </div>
+  </div>
+  <div id="search-default" class="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="18" cy="18" r="12" stroke="#D1D5DB" stroke-width="2"/><path d="M28 28l8 8" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round"/></svg>
+    <p class="text-sm">キーワードを入力してください</p>
+  </div>
+  <div id="search-results" class="hidden flex-1 overflow-y-auto px-4 py-3 space-y-3"></div>
+</div>
+
+<!-- POST SHEET -->
+<div id="post-sheet" class="hidden fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/40 fade-in" onclick="closePost()"></div>
+  <div id="post-sheet-inner" class="sheet-in absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto">
+    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mt-3"></div>
+    <div class="flex items-center justify-between px-5 pt-4 pb-4 border-b border-gray-100">
+      <h2 class="text-base font-black">掲示板を投稿する</h2>
+      <button onclick="closePost()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="px-5 py-4 space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-2">投稿ジャンル</label>
+        <div class="flex gap-2 flex-wrap">
+          <button class="genre-btn px-3.5 py-2 rounded-xl text-xs font-bold text-white" style="background:#1A6B5A">イベント・出店</button>
+          <button class="genre-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-600">お店</button>
+          <button class="genre-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-600">コミュニティ</button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1.5">タイトル</label>
+        <input id="post-title-input" type="text" placeholder="タイトルを入力" class="w-full h-11 border border-gray-200 rounded-xl px-4 text-sm text-gray-700 outline-none bg-white"/>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-xs font-bold text-gray-500 mb-1.5">日付を選択</label><input type="date" class="w-full h-11 border border-gray-200 rounded-xl px-3 text-sm text-gray-700 outline-none bg-white"/></div>
+        <div><label class="block text-xs font-bold text-gray-500 mb-1.5">場所</label><input type="text" placeholder="地名を入力" class="w-full h-11 border border-gray-200 rounded-xl px-3 text-sm text-gray-700 outline-none bg-white"/></div>
+      </div>
+      <div><label class="block text-xs font-bold text-gray-500 mb-1.5">関連リンク（任意）</label><input type="url" placeholder="https://..." class="w-full h-11 border border-gray-200 rounded-xl px-4 text-sm text-gray-700 outline-none bg-white"/></div>
+      <div><label class="block text-xs font-bold text-gray-500 mb-1.5">詳細文を入力（500字まで）</label><textarea rows="3" placeholder="詳細を入力してください…" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none resize-none leading-relaxed bg-white"></textarea></div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-2">画像を選択（2枚まで）</label>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="aspect-video rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer" style="background:linear-gradient(135deg,#E8F5F2,#d1fae5)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="3" stroke="#9CA3AF" stroke-width="1.5"/><circle cx="9" cy="9" r="2" stroke="#9CA3AF" stroke-width="1.3"/><path d="M3 16l5-4 4 4 3-2.5 6 4.5" stroke="#9CA3AF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="aspect-video rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer" style="background:linear-gradient(135deg,#eff6ff,#dbeafe)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="3" stroke="#9CA3AF" stroke-width="1.5"/><circle cx="9" cy="9" r="2" stroke="#9CA3AF" stroke-width="1.3"/><path d="M3 16l5-4 4 4 3-2.5 6 4.5" stroke="#9CA3AF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </div>
+      <!-- ③ マップピンアイコン選択 -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-2">マップに表示するアイコン <span class="font-normal text-gray-400">（タップして選択）</span></label>
+        <div class="flex gap-2 flex-wrap">
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="🔥" data-color="#F97316" onclick="selectPinIcon(this)">🔥</button>
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="🎨" data-color="#EC4899" onclick="selectPinIcon(this)">🎨</button>
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="☕" data-color="#3B82F6" onclick="selectPinIcon(this)">☕</button>
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="🎉" data-color="#8B5CF6" onclick="selectPinIcon(this)">🎉</button>
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="💪" data-color="#10B981" onclick="selectPinIcon(this)">💪</button>
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="🍜" data-color="#1A6B5A" onclick="selectPinIcon(this)">🍜</button>
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="🌸" data-color="#F59E0B" onclick="selectPinIcon(this)">🌸</button>
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="⚽" data-color="#EF4444" onclick="selectPinIcon(this)">⚽</button>
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="🎵" data-color="#6366F1" onclick="selectPinIcon(this)">🎵</button>
+          <button class="pin-icon-btn w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 border-transparent bg-gray-50" data-emoji="🐟" data-color="#0EA5E9" onclick="selectPinIcon(this)">🐟</button>
+        </div>
+        <div id="pin-preview" class="hidden mt-2.5 flex items-center gap-2">
+          <div id="pin-preview-circle" class="w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm flex-shrink-0"></div>
+          <p class="text-xs text-gray-500">このアイコンがマップに表示されます</p>
+        </div>
+      </div>
+      <!-- ② 落ち着いたブランドカラーに変更 -->
+      <button onclick="submitPost()" class="w-full h-12 rounded-full text-white text-sm font-black" style="background:linear-gradient(to right,#1A6B5A,#2B9E8A)">この内容で投稿する</button>
+      <div class="h-2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div id="settings-sheet" class="hidden fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/40 fade-in" onclick="closeSettings()"></div>
+  <div id="settings-sheet-inner" class="sheet-in absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl">
+    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mt-3 mb-1"></div>
+    <div class="px-4 pt-3 pb-6 space-y-1">
+      <p class="text-xs font-bold text-gray-400 px-2 pb-2">設定</p>
+      <button class="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl active:bg-gray-50 text-left">
+        <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-base">🔔</span>
+        <span class="text-sm font-bold">通知設定</span>
+        <svg class="ml-auto text-gray-300" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl active:bg-gray-50 text-left">
+        <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-base">🔒</span>
+        <span class="text-sm font-bold">プライバシー設定</span>
+        <svg class="ml-auto text-gray-300" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl active:bg-gray-50 text-left">
+        <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-base">❓</span>
+        <span class="text-sm font-bold">ヘルプ・お問い合わせ</span>
+        <svg class="ml-auto text-gray-300" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="h-px bg-gray-100 mx-3"></div>
+      <button class="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl active:bg-red-50 text-left">
+        <span class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-base">🚪</span>
+        <span class="text-sm font-bold text-red-500">ログアウト</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ BOTTOM NAV ════ -->
+<!-- ① マップ / タイムライン / 投稿(FAB) / カレンダー / マイページ -->
+<div class="flex-shrink-0 relative" style="z-index:30;overflow:visible">
+  <button onclick="openPost()" class="absolute left-1/2 flex flex-col items-center" style="transform:translate(-50%,-52%);top:0;z-index:31">
+    <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:#1A6B5A">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4v16M4 12h16" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </div>
+  </button>
+  <div class="bg-white border-t border-gray-100 flex items-center" style="height:56px;padding-bottom:env(safe-area-inset-bottom,0px)">
+    <button class="nav-btn flex-1 flex flex-col items-center justify-center gap-0.5" data-page="map">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2C8 2 5.5 4.5 5.5 7.5C5.5 12 11 19 11 19S16.5 12 16.5 7.5C16.5 4.5 14 2 11 2Z" stroke="#9CA3AF" stroke-width="1.5"/><circle cx="11" cy="7.5" r="2" stroke="#9CA3AF" stroke-width="1.5"/></svg>
+      <span class="nav-label text-[10px] text-gray-400">マップ</span>
+    </button>
+    <button class="nav-btn flex-1 flex flex-col items-center justify-center gap-0.5" data-page="timeline">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 6h16M3 11h16M3 16h10" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="nav-label text-[10px] text-gray-400">タイムライン</span>
+    </button>
+    <!-- center label only (FAB is absolute above) -->
+    <div class="flex-1 flex flex-col items-center justify-center gap-0.5">
+      <div style="width:22px;height:22px"></div>
+      <span class="text-[10px] text-gray-400">投稿</span>
+    </div>
+    <button class="nav-btn flex-1 flex flex-col items-center justify-center gap-0.5" data-page="calendar">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="4" width="16" height="15" rx="2.5" stroke="#9CA3AF" stroke-width="1.5"/><path d="M3 9H19M8 3V6M14 3V6" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="nav-label text-[10px] text-gray-400">カレンダー</span>
+    </button>
+    <button class="nav-btn flex-1 flex flex-col items-center justify-center gap-0.5" data-page="mypage">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8" r="4" stroke="#9CA3AF" stroke-width="1.5"/><path d="M3 19C3 15.7 6.6 13 11 13S19 15.7 19 19" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="nav-label text-[10px] text-gray-400">マイページ</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── NAVIGATE ──
+const PAGES = ['map','timeline','notifications','calendar','mypage','thread','user-profile','edit-profile'];
+function navigate(page) {
+  PAGES.forEach(p => { const el=document.getElementById('page-'+p); if(el) el.classList.remove('active'); });
+  const el = document.getElementById('page-'+page);
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    const on = btn.dataset.page === page;
+    btn.querySelectorAll('path,circle,rect').forEach(s => s.setAttribute('stroke', on ? '#1A6B5A' : '#9CA3AF'));
+    const lbl = btn.querySelector('.nav-label');
+    if(lbl){ lbl.style.color = on?'#1A6B5A':'#9CA3AF'; lbl.style.fontWeight = on?'700':'400'; }
+  });
+}
+document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.page)));
+
+// ── THREAD (from timeline) ──
+function showThread() { navigate('thread'); }
+
+// ── MARK ALL READ ② ──
+function markAllRead() {
+  document.querySelectorAll('.notif-unread').forEach(el => { el.style.background = ''; el.classList.remove('notif-unread'); });
+  document.querySelectorAll('.notif-dot').forEach(el => el.remove());
+  document.querySelectorAll('.notif-bell-badge').forEach(el => el.style.display = 'none');
+}
+function markOneRead(el) {
+  el.style.background = '';
+  el.classList.remove('notif-unread');
+  const dot = el.querySelector('.notif-dot');
+  if (dot) dot.remove();
+  const remaining = document.querySelectorAll('.notif-unread').length;
+  document.querySelectorAll('.notif-bell-badge').forEach(b => {
+    if (remaining === 0) b.style.display = 'none';
+    else b.textContent = remaining;
+  });
+}
+
+// ── USER PROFILES ③ ──
+const USER_PROFILES = {
+  '筋肉マッチョまん':    { avatar:'筋', avatarBg:'#1A6B5A', affiliation:'平三町目', link:'http://muscle___instagram', bio:'一緒にトレーニングできる仲間を募集中！コミュニティ作りたいな〜と思っています。', grad:'linear-gradient(135deg,#d4fc79,#96e6a1)', emoji:'💪', postTitle:'マッチョサークルつくりませんか？', postTag:'コミュニティ' },
+  'ハンドメイドマッチョ': { avatar:'ハ', avatarBg:'#EC4899', affiliation:'平三町目', link:'http://handmade___instagram', bio:'ハンドメイド大好き！週末はワークショップを開催しています。', grad:'linear-gradient(135deg,#fccb90,#d57eeb)', emoji:'🎨', postTitle:'ハンドメイドポップアップ開催！', postTag:'お店' },
+  '焚き火のにーちゃん':  { avatar:'焚', avatarBg:'#F97316', affiliation:'平三町目', link:'', bio:'焚き火が好きすぎて毎週やってます🔥 お気軽に声かけてください！', grad:'linear-gradient(135deg,#f83600,#f9d423)', emoji:'🔥', postTitle:'18:00〜 焚き火します！', postTag:'イベント' },
+  'マッチョニャンコ':    { avatar:'マ', avatarBg:'#8B5CF6', affiliation:'平三町目', link:'', bio:'コミュニティカフェを作りたいです！一緒にやってくれる仲間募集中。', grad:'linear-gradient(135deg,#a18cd1,#fbc2eb)', emoji:'☕', postTitle:'コミュニティカフェ始めたい…', postTag:'つぶやき' },
+  'まほちゃん':          { avatar:'ま', avatarBg:'#8B5CF6', affiliation:'いわき市', link:'', bio:'まほ会主催！みんなで楽しいことをしましょ🎉', grad:'linear-gradient(135deg,#a1c4fd,#c2e9fb)', emoji:'🎉', postTitle:'まほまほ会すべしやるよ！！', postTag:'イベント' },
+  'ニャンコの帝王':      { avatar:'ニ', avatarBg:'#F59E0B', affiliation:'いわき市', link:'', bio:'ニャンコをこよなく愛する帝王です🐱', grad:'linear-gradient(135deg,#fde68a,#fca5a5)', emoji:'🐱', postTitle:'マッチョサークルにコメント', postTag:'コミュニティ' },
+  'マッスル杉本バーニーズ':{ avatar:'マ', avatarBg:'#3B82F6', affiliation:'いわき市', link:'', bio:'宅トレ民です。ゆるっと繋がりましょ！', grad:'linear-gradient(135deg,#bfdbfe,#93c5fd)', emoji:'🏋️', postTitle:'宅トレ民です', postTag:'コミュニティ' },
+  'さくらもち':          { avatar:'さ', avatarBg:'#10B981', affiliation:'いわき市', link:'', bio:'よろしくお願いします🌸', grad:'linear-gradient(135deg,#6ee7b7,#34d399)', emoji:'🌸', postTitle:'フォローしました', postTag:'つぶやき' },
+  'スナック太郎':        { avatar:'ス', avatarBg:'#1A6B5A', affiliation:'平三町目', link:'', bio:'スナック好き集まれ！', grad:'linear-gradient(135deg,#fde68a,#fca5a5)', emoji:'🍟', postTitle:'持ち寄りスナック店🍟', postTag:'イベント' },
+  'システム管理者':      { avatar:'シ', avatarBg:'#8B5CF6', affiliation:'Machip運営', link:'', bio:'Machipの運営をしています。', grad:'linear-gradient(135deg,#ddd6fe,#c4b5fd)', emoji:'⚙️', postTitle:'システムからのお知らせ', postTag:'お知らせ' },
+};
+function openUserProfile(name, fromPage) {
+  const p = USER_PROFILES[name];
+  if(!p) return;
+  document.getElementById('uprofile-avatar').textContent = p.avatar;
+  document.getElementById('uprofile-avatar').style.background = p.avatarBg;
+  document.getElementById('uprofile-name').textContent = name;
+  document.getElementById('uprofile-affiliation-top').textContent = p.affiliation || '';
+  document.getElementById('uprofile-bio').textContent = p.bio || '';
+  document.getElementById('uprofile-org').textContent = p.affiliation || '未設定';
+  const linkEl  = document.getElementById('uprofile-link');
+  const linkWrap = document.getElementById('uprofile-link-wrap');
+  if(p.link) {
+    linkEl.textContent = p.link; linkEl.href = p.link;
+    linkWrap.classList.remove('hidden');
+  } else {
+    linkWrap.classList.add('hidden');
+  }
+  const img = document.getElementById('uprofile-post-img');
+  img.style.background = p.grad;
+  img.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-2xl opacity-40">${p.emoji}</div>`;
+  document.getElementById('uprofile-post-title').textContent = p.postTitle;
+  document.getElementById('uprofile-post-tag').textContent   = p.postTag;
+  document.getElementById('uprofile-back').onclick = () => navigate(fromPage || 'timeline');
+  currentProfileName = name;
+  const followBtn = document.getElementById('follow-btn');
+  if (followBtn) {
+    if (followedUsers.has(name)) {
+      followBtn.textContent = 'フォロー中';
+      followBtn.style.background = '#E8F5F2';
+      followBtn.style.color = '#1A6B5A';
+    } else {
+      followBtn.textContent = 'フォローする';
+      followBtn.style.background = '#1A6B5A';
+      followBtn.style.color = '#fff';
+    }
+  }
+  navigate('user-profile');
+}
+
+// ── THREAD (from map pin) ④ ──
+const MAP_PINS = {
+  takibi:  { title:'18:00〜 焚き火します！暇まりにおいで', user:'焚き火のにーちゃん', meta:'平三町目 · 2025/12/04', tag:'イベント', tagBg:'#E8F5F2', tagCol:'#1A6B5A', avatar:'焚', avatarBg:'#F97316', body:'お酒やおつまみ片手にどうぞゆるりとご参加ください！0次会の雰囲気で気軽にどうぞ。持ち寄りで何か持って来てくれると嬉しいです！', grad:'linear-gradient(135deg,#f83600,#f9d423)', emoji:'🔥' },
+  handmade:{ title:'ハンドメイドポップアップ開催！', user:'ハンドメイドマッチョ', meta:'平三町目 · 2025/12/04', tag:'お店', tagBg:'#FFF0F5', tagCol:'#BE185D', avatar:'ハ', avatarBg:'#EC4899', body:'週末はお家でワークショップはいかがですか？参加費500円！詳細はプロフィールのリンクから。', grad:'linear-gradient(135deg,#fccb90,#d57eeb)', emoji:'🎨' },
+  cafe:    { title:'コミュニティカフェ始めたい…興味ある人いませんか？', user:'マッチョニャンコ', meta:'平三町目 · 2025/12/04', tag:'つぶやき', tagBg:'#F3F4F6', tagCol:'#6B7280', avatar:'マ', avatarBg:'#8B5CF6', body:'学生も気軽に入れるコミュニティカフェみたいな空間を作りたいです。仲間を募集中！', grad:'linear-gradient(135deg,#a18cd1,#fbc2eb)', emoji:'☕' },
+  maho:    { title:'まほまほ会すべしやるよ！！', user:'まほちゃん', meta:'平三町目 · 2025/12/04', tag:'イベント', tagBg:'#E8F5F2', tagCol:'#1A6B5A', avatar:'ま', avatarBg:'#8B5CF6', body:'まほ会開催！みんなで集まって楽しみましょう！初めての方も大歓迎です🎉', grad:'linear-gradient(135deg,#a1c4fd,#c2e9fb)', emoji:'🎉' },
+  matcho:  { title:'マッチョサークルつくりませんか？', user:'筋肉マッチョまん', meta:'平三町目 · 2025/12/04', tag:'コミュニティ', tagBg:'#FFFBEB', tagCol:'#B45309', avatar:'筋', avatarBg:'#1A6B5A', body:'一緒にトレーニングできる仲間がいない！！！と思っていませんか？パーソナルトレーナーとかじゃなくて、一緒に高め合える仲間が欲しいんです！コミュニティ作りたいな〜と思っています。', grad:'linear-gradient(135deg,#d4fc79,#96e6a1)', emoji:'💪' },
+};
+function openMapThread(key) {
+  const d = MAP_PINS[key];
+  if(!d) return;
+  document.getElementById('thread-title').textContent  = d.title;
+  document.getElementById('thread-user').textContent   = d.user;
+  document.getElementById('thread-meta').textContent   = d.meta;
+  document.getElementById('thread-body').textContent   = d.body;
+  document.getElementById('thread-avatar').textContent = d.avatar;
+  document.getElementById('thread-avatar').style.background = d.avatarBg;
+  document.getElementById('thread-tag').textContent    = d.tag;
+  document.getElementById('thread-tag').style.background = d.tagBg;
+  document.getElementById('thread-tag').style.color    = d.tagCol;
+  const img = document.getElementById('thread-img');
+  img.style.background = d.grad;
+  img.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-8xl opacity-35">${d.emoji}</div><div class="absolute inset-0 flex items-end p-3"><span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📍 ${d.meta}</span></div>`;
+  document.getElementById('thread-back').onclick = () => navigate('map');
+  navigate('thread');
+}
+
+// ── THREAD (from calendar) ③ ──
+const CAL_THREADS = {
+  9:  { title:'持ち寄りスナック店🍟', user:'スナック太郎', meta:'平三町目 · 5月9日', tag:'イベント', tagBg:'#E8F5F2', tagCol:'#1A6B5A', avatar:'ス', avatarBg:'#1A6B5A', body:'持ち寄りスナック店です！みんなでお菓子や飲み物を持ち寄って楽しみましょう！お気軽にご参加ください。', grad:'linear-gradient(135deg,#fde68a,#fca5a5)', emoji:'🍟' },
+  16: { title:'18:00〜 焚き火します！', user:'焚き火のにーちゃん', meta:'平三町目 · 5月16日', tag:'イベント', tagBg:'#E8F5F2', tagCol:'#1A6B5A', avatar:'焚', avatarBg:'#F97316', body:'お酒やおつまみ片手にどうぞゆるりとご参加ください！0次会の雰囲気で気軽にどうぞ。持ち寄りで何か持って来てくれると嬉しいです！', grad:'linear-gradient(135deg,#f83600,#f9d423)', emoji:'🔥' },
+  19: { title:'マッチョ交流会',          user:'筋肉マッチョまん', meta:'平三町目 · 5月19日', tag:'コミュニティ', tagBg:'#FFFBEB', tagCol:'#B45309', avatar:'筋', avatarBg:'#1A6B5A', body:'マッチョ同士で交流できる会を開催します！一緒にトレーニング方法を語り合いましょう！', grad:'linear-gradient(135deg,#d4fc79,#96e6a1)', emoji:'💪' },
+  22: { title:'ハンドメイドポップアップ', user:'ハンドメイドマッチョ', meta:'平三町目 · 5月22日', tag:'お店', tagBg:'#FFF0F5', tagCol:'#BE185D', avatar:'ハ', avatarBg:'#EC4899', body:'週末はお家でワークショップはいかがですか？参加費500円！詳細はプロフィールのリンクから。', grad:'linear-gradient(135deg,#fccb90,#d57eeb)', emoji:'🎨' },
+};
+function openCalThread(day) {
+  const d = CAL_THREADS[day];
+  if(!d) return;
+  document.getElementById('thread-title').textContent  = d.title;
+  document.getElementById('thread-user').textContent   = d.user;
+  document.getElementById('thread-meta').textContent   = d.meta;
+  document.getElementById('thread-body').textContent   = d.body;
+  document.getElementById('thread-avatar').textContent = d.avatar;
+  document.getElementById('thread-avatar').style.background = d.avatarBg;
+  document.getElementById('thread-tag').textContent    = d.tag;
+  document.getElementById('thread-tag').style.background = d.tagBg;
+  document.getElementById('thread-tag').style.color    = d.tagCol;
+  const img = document.getElementById('thread-img');
+  img.style.background = d.grad;
+  img.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-8xl opacity-35">${d.emoji}</div><div class="absolute inset-0 flex items-end p-3"><span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📍 ${d.meta}</span></div>`;
+  document.getElementById('thread-back').onclick = () => navigate('calendar');
+  navigate('thread');
+}
+
+// ── CALENDAR PREVIEW ③ ──
+const CAL_EVENTS = {
+  9:  { title:'持ち寄りスナック店🍟', date:'5月9日', place:'平三町目', desc:'持ち寄りスナック店です！みんなでお菓子や飲み物を持ち寄って楽しみましょう！', grad:'linear-gradient(135deg,#fde68a,#fca5a5)', emoji:'🍟', day:9 },
+  16: { title:'18:00〜 焚き火します！', date:'5月16日', place:'平三町目', desc:'お酒やおつまみ片手にどうぞ！0次会の雰囲気で気軽にどうぞ。', grad:'linear-gradient(135deg,#f83600,#f9d423)', emoji:'🔥', day:16 },
+  19: { title:'マッチョ交流会', date:'5月19日', place:'平三町目', desc:'マッチョ同士で交流できる会を開催します！', grad:'linear-gradient(135deg,#d4fc79,#96e6a1)', emoji:'💪', day:19 },
+  22: { title:'ハンドメイドポップアップ', date:'5月22日', place:'平三町目', desc:'週末はワークショップはいかがですか？参加費500円！', grad:'linear-gradient(135deg,#fccb90,#d57eeb)', emoji:'🎨', day:22 },
+};
+function showCalPreview(day) {
+  const ev = CAL_EVENTS[day];
+  const box = document.getElementById('cal-preview');
+  if(!ev){ box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  box.innerHTML = `
+    <div class="h-32 relative overflow-hidden" style="background:${ev.grad}">
+      <div class="absolute inset-0 flex items-center justify-center text-6xl opacity-35">${ev.emoji}</div>
+      <div class="absolute inset-0 flex items-end p-3"><span class="text-white text-xs font-bold bg-black/30 px-2 py-0.5 rounded-full">📍 ${ev.date} · ${ev.place}</span></div>
+    </div>
+    <div class="p-4">
+      <p class="text-sm font-black mb-1">${ev.title}</p>
+      <p class="text-xs text-gray-500 leading-relaxed mb-3">${ev.desc}</p>
+      <button onclick="openCalThread(${ev.day})"
+        class="w-full py-2.5 rounded-xl text-sm font-bold text-white"
+        style="background:#1A6B5A">掲示板の詳細を見る →</button>
+    </div>`;
+  box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ── SEARCH ──
+const SEARCH_DATA = [
+  { title:'マッチョサークルつくりませんか？', user:'筋肉マッチョまん', tag:'コミュニティ', tagBg:'#FFFBEB', tagCol:'#B45309', grad:'linear-gradient(135deg,#d4fc79,#96e6a1)', emoji:'💪' },
+  { title:'ハンドメイドポップアップ開催！', user:'ハンドメイドマッチョ', tag:'お店', tagBg:'#FFF0F5', tagCol:'#BE185D', grad:'linear-gradient(135deg,#fccb90,#d57eeb)', emoji:'🎨' },
+  { title:'18:00〜 焚き火します！', user:'焚き火のにーちゃん', tag:'イベント', tagBg:'#E8F5F2', tagCol:'#1A6B5A', grad:'linear-gradient(135deg,#f83600,#f9d423)', emoji:'🔥' },
+  { title:'コミュニティカフェ始めたい…', user:'マッチョニャンコ', tag:'つぶやき', tagBg:'#F3F4F6', tagCol:'#6B7280', grad:'linear-gradient(135deg,#a18cd1,#fbc2eb)', emoji:'☕' },
+  { title:'持ち寄りスナック店🍟', user:'スナック太郎', tag:'イベント', tagBg:'#E8F5F2', tagCol:'#1A6B5A', grad:'linear-gradient(135deg,#fde68a,#fca5a5)', emoji:'🍟' },
+  { title:'まほまほ会すべしやるよ！！', user:'まほちゃん', tag:'イベント', tagBg:'#E8F5F2', tagCol:'#1A6B5A', grad:'linear-gradient(135deg,#a1c4fd,#c2e9fb)', emoji:'🎉' },
+];
+function openSearch() {
+  document.getElementById('search-overlay').classList.remove('hidden');
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-results').classList.add('hidden');
+  document.getElementById('search-default').classList.remove('hidden');
+  setTimeout(() => document.getElementById('search-input').focus(), 100);
+}
+function closeSearch() { document.getElementById('search-overlay').classList.add('hidden'); }
+function filterSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if(!q){ document.getElementById('search-results').classList.add('hidden'); document.getElementById('search-default').classList.remove('hidden'); return; }
+  document.getElementById('search-default').classList.add('hidden');
+  const results = document.getElementById('search-results');
+  results.classList.remove('hidden');
+  const hits = SEARCH_DATA.filter(d => d.title.includes(q) || d.user.includes(q) || d.tag.includes(q));
+  if(!hits.length){ results.innerHTML=`<div class="flex flex-col items-center justify-center h-40 text-gray-400 text-sm gap-2"><span>😔</span><span>「${q}」の検索結果はありません</span></div>`; return; }
+  results.innerHTML = hits.map(d=>`
+    <div class="bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer active:opacity-80" onclick="closeSearch();navigate('timeline')">
+      <div class="h-28 relative overflow-hidden" style="background:${d.grad}">
+        <div class="absolute inset-0 flex items-center justify-center text-5xl opacity-35">${d.emoji}</div>
+      </div>
+      <div class="p-3">
+        <div class="flex items-center gap-2 mb-1">
+          <p class="text-sm font-bold flex-1 truncate">${d.title}</p>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0" style="background:${d.tagBg};color:${d.tagCol}">${d.tag}</span>
+        </div>
+        <p class="text-xs text-gray-400">${d.user}</p>
+      </div>
+    </div>`).join('');
+}
+
+// ── POST SHEET ──
+function openPost() {
+  document.getElementById('post-sheet').classList.remove('hidden');
+  const inner = document.getElementById('post-sheet-inner');
+  inner.classList.remove('sheet-out'); void inner.offsetWidth; inner.classList.add('sheet-in');
+}
+function closePost() {
+  const inner = document.getElementById('post-sheet-inner');
+  inner.classList.remove('sheet-in'); inner.classList.add('sheet-out');
+  setTimeout(() => document.getElementById('post-sheet').classList.add('hidden'), 240);
+}
+
+// ── MYPAGE TABS ──
+function switchMyTab(tab) {
+  document.getElementById('mp-mine').classList.toggle('hidden', tab!=='mine');
+  document.getElementById('mp-saved').classList.toggle('hidden', tab!=='saved');
+  document.getElementById('mp-following').classList.toggle('hidden', tab!=='following');
+  ['mine','saved','following'].forEach(t => {
+    const btn = document.getElementById('mptab-'+t);
+    if (btn) { btn.style.color = t===tab?'#1A6B5A':'#9CA3AF'; btn.style.borderColor = t===tab?'#1A6B5A':'transparent'; }
+  });
+}
+
+// ── FOLLOW ──
+const followedUsers = new Set();
+let currentProfileName = '';
+function toggleFollow() {
+  const btn = document.getElementById('follow-btn');
+  if (followedUsers.has(currentProfileName)) {
+    followedUsers.delete(currentProfileName);
+    btn.textContent = 'フォローする';
+    btn.style.background = '#1A6B5A';
+    btn.style.color = '#fff';
+  } else {
+    followedUsers.add(currentProfileName);
+    btn.textContent = 'フォロー中';
+    btn.style.background = '#E8F5F2';
+    btn.style.color = '#1A6B5A';
+  }
+  renderFollowingTab();
+}
+function renderFollowingTab() {
+  const list  = document.getElementById('following-list');
+  const empty = document.getElementById('following-empty');
+  if (!list) return;
+  if (followedUsers.size === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  list.innerHTML = [...followedUsers].map(name => {
+    const p = USER_PROFILES[name];
+    if (!p) return '';
+    return `<div class="flex gap-3 items-center p-3 bg-gray-50 rounded-xl cursor-pointer active:opacity-70" onclick="openUserProfile('${name}','mypage')">
+      <div class="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden relative" style="background:${p.grad}"><div class="absolute inset-0 flex items-center justify-center text-2xl opacity-50">${p.emoji}</div></div>
+      <div class="flex-1 min-w-0"><p class="text-sm font-bold truncate">${name}</p><p class="text-xs text-gray-400 mt-0.5">${p.affiliation}</p></div>
+      <svg class="text-gray-300 flex-shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>`;
+  }).join('');
+}
+
+// ── GENRE / FILTER buttons ──
+document.querySelectorAll('.genre-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.genre-btn').forEach(b => { b.style.background='#F3F4F6'; b.style.color='#4B5563'; });
+    this.style.background='#1A6B5A'; this.style.color='#fff';
+  });
+});
+document.querySelectorAll('.tl-chip').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tl-chip').forEach(b => { b.style.background='#F3F4F6'; b.style.color='#6B7280'; });
+    this.style.background='#1A6B5A'; this.style.color='#fff';
+    const genre = this.dataset.genre;
+    document.querySelectorAll('.tl-card').forEach(card => {
+      card.style.display = (!genre || card.dataset.genre === genre) ? '' : 'none';
+    });
+  });
+});
+
+// ── ④ INLINE COMMENT TOGGLE ──
+function toggleComment(id) {
+  const box = document.getElementById(id);
+  if (!box) return;
+  box.classList.toggle('hidden');
+  if (!box.classList.contains('hidden')) {
+    const inp = box.querySelector('input');
+    if (inp) setTimeout(() => inp.focus(), 50);
+  }
+}
+
+// ── ④ LIKE TOGGLE ──
+function toggleLike(btn) {
+  const liked = btn.dataset.liked === '1';
+  const path  = btn.querySelector('path');
+  const span  = btn.querySelector('span');
+  const count = parseInt(span.textContent) || 0;
+  if (!liked) {
+    btn.dataset.liked = '1';
+    btn.style.color = '#EF4444';
+    path.setAttribute('fill', '#EF4444');
+    path.setAttribute('stroke', '#EF4444');
+    span.textContent = count + 1;
+  } else {
+    btn.dataset.liked = '0';
+    btn.style.color = '#9CA3AF';
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    span.textContent = count - 1;
+  }
+}
+
+// ── ④ SAVE TOGGLE ──
+function toggleSave(btn) {
+  const saved = btn.dataset.saved === '1';
+  const path  = btn.querySelector('path');
+  if (!saved) {
+    btn.dataset.saved = '1';
+    btn.style.color = '#1A6B5A';
+    path.setAttribute('fill', '#1A6B5A');
+    path.setAttribute('stroke', '#1A6B5A');
+  } else {
+    btn.dataset.saved = '0';
+    btn.style.color = '#9CA3AF';
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+  }
+}
+
+// ── ③ MAP PIN ICON PICKER ──
+let selPinIcon = null;
+let selPinColor = '#1A6B5A';
+function selectPinIcon(btn) {
+  document.querySelectorAll('.pin-icon-btn').forEach(b => {
+    b.style.borderColor = 'transparent';
+    b.style.background  = '#F9FAFB';
+  });
+  const emoji = btn.dataset.emoji;
+  const color = btn.dataset.color;
+  btn.style.borderColor = color;
+  btn.style.background  = color + '22';
+  selPinIcon  = emoji;
+  selPinColor = color;
+  const preview = document.getElementById('pin-preview');
+  const circle  = document.getElementById('pin-preview-circle');
+  preview.classList.remove('hidden');
+  circle.textContent       = emoji;
+  circle.style.background  = color;
+}
+
+// ── ③ SUBMIT POST → add pin to map ──
+function submitPost() {
+  const titleEl = document.getElementById('post-title-input');
+  const title   = (titleEl && titleEl.value.trim()) ? titleEl.value.trim() : '新しい投稿';
+  const icon    = selPinIcon || '📍';
+  const color   = selPinColor;
+  const label   = title.length > 8 ? title.slice(0, 8) + '…' : title;
+
+  const mapArea = document.getElementById('map-area');
+  const wrap    = document.createElement('div');
+  wrap.className = 'map-pin-wrap';
+  const top  = (Math.random() * 45 + 12).toFixed(0) + '%';
+  const left = (Math.random() * 55 + 12).toFixed(0) + '%';
+  wrap.style.cssText = `top:${top};left:${left}`;
+  wrap.innerHTML = `
+    <div class="bg-white rounded-md shadow px-1.5 py-0.5 text-[10px] font-bold mb-1 whitespace-nowrap">${label}${icon}</div>
+    <div class="map-pin-circle" style="background:${color}">${icon}</div>
+    <div class="map-pin-tail" style="border-top:10px solid ${color}"></div>`;
+  wrap.onclick = () => navigate('timeline');
+  mapArea.appendChild(wrap);
+
+  // reset form
+  if (titleEl) titleEl.value = '';
+  selPinIcon  = null;
+  selPinColor = '#1A6B5A';
+  document.querySelectorAll('.pin-icon-btn').forEach(b => { b.style.borderColor='transparent'; b.style.background='#F9FAFB'; });
+  document.getElementById('pin-preview').classList.add('hidden');
+  closePost();
+  navigate('map');
+}
+
+// ── TIMELINE THREAD DATA ──
+const TL_THREADS = {
+  ai1: {
+    title:'【ニュース】いわき市、新たな観光キャンペーン「いわき満喫プロジェクト」開始',
+    user:'AIボット', meta:'いわき市ニュース · 2日前',
+    tag:'AIニュース', tagBg:'#F3F4F6', tagCol:'#6B7280',
+    avatar:'AI', avatarBg:'linear-gradient(135deg,#667eea,#764ba2)',
+    body:'いわき市は地域活性化を目的とした新キャンペーンを開始。市内各所でイベント開催予定。地元の観光資源を活かした取り組みとして注目されています。',
+    link:'', grad:'linear-gradient(135deg,#667eea,#764ba2)', emoji:'📰',
+    likeCount:12, commentCount:3,
+    comments:[
+      {avatar:'筋',avatarBg:'#1A6B5A',name:'筋肉マッチョまん',time:'1日前',text:'いいですね！参加したい'},
+      {avatar:'さ',avatarBg:'#10B981',name:'さくらもち',time:'2日前',text:'どこで開催ですか？'},
+    ]
+  },
+  matcho: {
+    title:'マッチョサークルつくりませんか？',
+    user:'筋肉マッチョまん', meta:'平三町目 · 2025/12/04',
+    tag:'コミュニティ', tagBg:'#FFFBEB', tagCol:'#B45309',
+    avatar:'筋', avatarBg:'#1A6B5A',
+    body:'一緒にトレーニングできる仲間がいない！！！と思っていませんか？パーソナルトレーナーとかじゃなくて、一緒に高め合える仲間が欲しいんです！コミュニティ作りたいな〜と思っています。',
+    link:'http://______instagram', grad:'linear-gradient(135deg,#d4fc79,#96e6a1)', emoji:'💪',
+    likeCount:24, commentCount:8,
+    comments:[
+      {avatar:'ニ',avatarBg:'#F59E0B',name:'ニャンコの帝王',time:'12/04 14:22',text:'どんなコミュニティ？ラインとか？'},
+      {avatar:'マ',avatarBg:'#3B82F6',name:'マッスル杉本バーニーズ',time:'12/04 15:01',text:'宅トレ民です。ゆるっと繋がれるならいいかも'},
+      {avatar:'さ',avatarBg:'#10B981',name:'さくらもち',time:'12/05 09:14',text:'私も興味あります！週何回くらい活動する予定ですか？'},
+    ]
+  },
+  handmade: {
+    title:'ハンドメイドポップアップ開催！',
+    user:'ハンドメイドマッチョ', meta:'平三町目 · 2025/12/04',
+    tag:'お店', tagBg:'#FFF0F5', tagCol:'#BE185D',
+    avatar:'ハ', avatarBg:'#EC4899',
+    body:'週末はお家でワークショップはいかがですか？参加費500円！詳細はプロフィールのリンクから。ハンドメイドの楽しさを一緒に体験しましょう！',
+    link:'http://handmade___instagram', grad:'linear-gradient(135deg,#fccb90,#d57eeb)', emoji:'🎨',
+    likeCount:11, commentCount:5,
+    comments:[
+      {avatar:'さ',avatarBg:'#10B981',name:'さくらもち',time:'12/04 10:30',text:'参加したいです！申し込みはどこから？'},
+      {avatar:'筋',avatarBg:'#1A6B5A',name:'筋肉マッチョまん',time:'12/04 11:00',text:'行きます！何を作りますか？'},
+    ]
+  },
+  takibi: {
+    title:'18:00〜 焚き火します！暇まりにおいで',
+    user:'焚き火のにーちゃん', meta:'平三町目 · 2025/12/04',
+    tag:'イベント・出店', tagBg:'#E8F5F2', tagCol:'#1A6B5A',
+    avatar:'焚', avatarBg:'#F97316',
+    body:'お酒やおつまみ片手にどうぞゆるりとご参加ください！0次会の雰囲気で気軽にどうぞ。持ち寄りで何か持って来てくれると嬉しいです！',
+    link:'', grad:'linear-gradient(135deg,#f83600,#f9d423)', emoji:'🔥',
+    likeCount:18, commentCount:7,
+    comments:[
+      {avatar:'筋',avatarBg:'#1A6B5A',name:'筋肉マッチョまん',time:'12/04 16:00',text:'行きます！何か持っていきます🍕'},
+      {avatar:'マ',avatarBg:'#8B5CF6',name:'マッチョニャンコ',time:'12/04 17:00',text:'私も！おつまみ持参します'},
+    ]
+  },
+  ai2: {
+    title:'【ニュース】いわき市の海岸でアカウミガメの産卵確認',
+    user:'AIボット', meta:'自然ニュース · 2日前',
+    tag:'AIニュース', tagBg:'#F3F4F6', tagCol:'#6B7280',
+    avatar:'AI', avatarBg:'linear-gradient(135deg,#0f2027,#2c5364)',
+    body:'今年初 いわき市の四倉海岸で、アカウミガメの産卵が確認されました。地元の自然保護団体が見守り活動を実施しています。',
+    link:'', grad:'linear-gradient(135deg,#0f2027,#203a43,#2c5364)', emoji:'🐢',
+    likeCount:6, commentCount:2,
+    comments:[
+      {avatar:'さ',avatarBg:'#10B981',name:'さくらもち',time:'1日前',text:'自然が豊かですね🐢'},
+    ]
+  },
+  cafe: {
+    title:'コミュニティカフェ始めたい…興味ある人いませんか？',
+    user:'マッチョニャンコ', meta:'平三町目 · 2025/12/04',
+    tag:'コミュニティ', tagBg:'#F3F4F6', tagCol:'#6B7280',
+    avatar:'マ', avatarBg:'#8B5CF6',
+    body:'学生も気軽に入れるコミュニティカフェみたいな空間を作りたいです。仲間を募集中！',
+    link:'', grad:'linear-gradient(135deg,#a18cd1,#fbc2eb)', emoji:'☕',
+    likeCount:9, commentCount:4,
+    comments:[
+      {avatar:'筋',avatarBg:'#1A6B5A',name:'筋肉マッチョまん',time:'12/04 20:00',text:'面白そう！どんな感じのカフェにしたいですか？'},
+      {avatar:'ハ',avatarBg:'#EC4899',name:'ハンドメイドマッチョ',time:'12/04 21:00',text:'ワークショップもできたら楽しそう！'},
+    ]
+  },
+};
+
+function openTLThread(id) {
+  const d = TL_THREADS[id];
+  if (!d) return;
+  document.getElementById('thread-title').textContent = d.title;
+  document.getElementById('thread-user').textContent  = d.user;
+  document.getElementById('thread-meta').textContent  = d.meta;
+  document.getElementById('thread-body').textContent  = d.body;
+  document.getElementById('thread-avatar').textContent = d.avatar;
+  document.getElementById('thread-avatar').style.background = d.avatarBg;
+  document.getElementById('thread-tag').textContent = d.tag;
+  document.getElementById('thread-tag').style.background = d.tagBg;
+  document.getElementById('thread-tag').style.color    = d.tagCol;
+  const linkEl = document.getElementById('thread-link');
+  linkEl.textContent = d.link ? '🔗 ' + d.link : '';
+  const img = document.getElementById('thread-img');
+  img.style.background = d.grad;
+  img.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-8xl opacity-35">${d.emoji}</div>`;
+  document.getElementById('thread-comment-count').textContent = d.commentCount;
+  document.getElementById('thread-comment-label').textContent = d.commentCount;
+  document.getElementById('thread-like-count').textContent    = d.likeCount;
+  // reset like/save
+  const lb = document.getElementById('thread-like-btn');
+  lb.dataset.liked = '0'; lb.style.color = '#9CA3AF';
+  const lp = lb.querySelector('path');
+  if (lp) { lp.setAttribute('fill','none'); lp.setAttribute('stroke','currentColor'); }
+  const sb = document.getElementById('thread-save-btn');
+  sb.dataset.saved = '0'; sb.style.color = '#9CA3AF';
+  const sp = sb.querySelector('path');
+  if (sp) { sp.setAttribute('fill','none'); sp.setAttribute('stroke','currentColor'); }
+  // render comments
+  document.getElementById('thread-comments').innerHTML = d.comments.map(c => `
+    <div class="bg-white rounded-xl p-3.5 shadow-sm">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0" style="background:${c.avatarBg}">${c.avatar}</div>
+        <p class="text-sm font-bold">${c.name}</p>
+        <p class="text-xs text-gray-400 ml-auto">${c.time}</p>
+      </div>
+      <p class="text-sm text-gray-600">${c.text}</p>
+    </div>`).join('');
+  document.getElementById('thread-back').onclick = () => navigate('timeline');
+  navigate('thread');
+}
+
+// ── SETTINGS SHEET ──
+function openSettings() {
+  document.getElementById('settings-sheet').classList.remove('hidden');
+  const inner = document.getElementById('settings-sheet-inner');
+  inner.classList.remove('sheet-out'); void inner.offsetWidth; inner.classList.add('sheet-in');
+}
+function closeSettings() {
+  const inner = document.getElementById('settings-sheet-inner');
+  inner.classList.remove('sheet-in'); inner.classList.add('sheet-out');
+  setTimeout(() => document.getElementById('settings-sheet').classList.add('hidden'), 240);
+}
+
+// ── MAP TAP → CREATE POST ──
+function handleMapTap(e) {
+  if (e.target.closest('.map-pin-wrap')) return;
+  const area = document.getElementById('map-area');
+  const popup = document.getElementById('map-create-popup');
+  const rect = area.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const pw = 220, ph = 100;
+  let left = x - pw / 2;
+  let top  = y - ph - 16;
+  if (left < 8) left = 8;
+  if (left + pw > rect.width - 8) left = rect.width - pw - 8;
+  if (top < 8) top = y + 16;
+  popup.style.left = left + 'px';
+  popup.style.top  = top  + 'px';
+  popup.classList.remove('hidden');
+}
+function cancelMapCreate() {
+  document.getElementById('map-create-popup').classList.add('hidden');
+}
+function confirmMapCreate() {
+  document.getElementById('map-create-popup').classList.add('hidden');
+  openPost();
+}
+
+navigate('map');
+</script>
+</body>
+</html>
