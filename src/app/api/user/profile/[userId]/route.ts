@@ -30,6 +30,12 @@ export async function GET(
     }
 
     const userData = await response.json();
+    
+    // Ensure userId is populated from profileId if not present (as backend returns profileId only)
+    if (userData && !userData.userId && userData.profileId) {
+      userData.userId = userData.profileId;
+    }
+    
     console.log("userData", userData);
     return NextResponse.json(userData);
   } catch (error) {

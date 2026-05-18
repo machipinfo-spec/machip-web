@@ -11,6 +11,27 @@ type GetTimelineResponse = {
   total?: number;
 };
 
+const mapBackendThreadToFrontend = (t: any): Thread => {
+  if (!t) return t;
+  return {
+    threadId: t.threadId,
+    threadName: t.threadName,
+    createdAt: t.createdAt,
+    ownerUserId: t.ownerUserId,
+    ownerUserProfile: t.ownerUserProfile || {
+      userId: t.ownerUserId,
+      userName: t.ownerName || "ユーザー",
+      imageUrl: t.ownerAvatar || null,
+    },
+    category: t.category,
+    categoryContent: t.categoryContent || { imageUrl: null },
+    childThreadCount: typeof t.replyCount === "number" ? t.replyCount : (t.childThreadCount || 0),
+    parentThreadId: t.parentThreadId || null,
+    childThreadIds: t.childThreadIds || [],
+    mapPointInfoId: t.mapPointInfoId || null,
+  };
+};
+
 export const getTimeline = async ({
   offset,
   limit,
@@ -26,12 +47,10 @@ export const getTimeline = async ({
   }
 
   const data = await res.json();
+  
+  const rawThreads: any[] = ownerUserId
+    ? (Array.isArray(data) ? data : [])
+    : ((data as GetTimelineResponse).threads || []);
 
-  if (ownerUserId) {
-    // ユーザー別: Thread[]
-    return (data as Thread[]) || [];
-  } else {
-    // 全体: { threads: Thread[], total: number }
-    return (data as GetTimelineResponse).threads || [];
-  }
+  return rawThreads.map(mapBackendThreadToFrontend);
 };

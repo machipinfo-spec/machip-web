@@ -26,6 +26,9 @@ export async function PUT(request: NextRequest) {
     }
 
     const updatedUserData = await response.json();
+    if (updatedUserData && !updatedUserData.userId && updatedUserData.profileId) {
+      updatedUserData.userId = updatedUserData.profileId;
+    }
     return NextResponse.json(updatedUserData);
   } catch (error) {
     console.warn("user/profile PUT API: falling back to mock due to:", error);
@@ -71,6 +74,9 @@ export async function POST(request: NextRequest) {
     }
 
     const createdExercise = await response.json();
+    if (createdExercise && !createdExercise.userId && createdExercise.profileId) {
+      createdExercise.userId = createdExercise.profileId;
+    }
     return NextResponse.json(createdExercise);
   } catch (error) {
     console.warn("user/profile POST API: falling back to mock due to:", error);
