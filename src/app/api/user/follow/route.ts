@@ -12,6 +12,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
+    console.log("body", body);
+
     const response = await fetch(`${apiBaseUrl}/user/follow`, {
       method: "POST",
       headers: {
@@ -22,14 +24,21 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorText = await response.text();
+      return NextResponse.json(
+        { error: errorText || `API error: ${response.status}` },
+        { status: response.status },
+      );
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error("user/follow POST API error:", error);
-    return NextResponse.json({ error: "Failed to follow user" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to follow user" },
+      { status: 500 },
+    );
   }
 }
 
@@ -44,25 +53,38 @@ export async function DELETE(request: NextRequest) {
     const targetUserId = searchParams.get("targetUserId");
 
     if (!targetUserId) {
-      return NextResponse.json({ error: "targetUserId is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "targetUserId is required" },
+        { status: 400 },
+      );
     }
 
-    const response = await fetch(`${apiBaseUrl}/user/follow?targetUserId=${targetUserId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `${session.idToken}`,
+    const response = await fetch(
+      `${apiBaseUrl}/user/follow?targetUserId=${targetUserId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${session.idToken}`,
+        },
       },
-    });
+    );
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorText = await response.text();
+      return NextResponse.json(
+        { error: errorText || `API error: ${response.status}` },
+        { status: response.status },
+      );
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error("user/follow DELETE API error:", error);
-    return NextResponse.json({ error: "Failed to unfollow user" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to unfollow user" },
+      { status: 500 },
+    );
   }
 }
