@@ -7,7 +7,7 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
     const session = await auth();
@@ -30,21 +30,34 @@ export async function GET(
     }
 
     const userData = await response.json();
+    console.log("userData", userData);
     return NextResponse.json(userData);
   } catch (error) {
     const { userId } = await params;
-    console.warn(`user/profile/[userId] GET API: falling back to mock for user ${userId} due to:`, error);
-    
+    console.warn(
+      `user/profile/[userId] GET API: falling back to mock for user ${userId} due to:`,
+      error,
+    );
+
     // Detailed mock profile matching schema
     const mockProfile = {
       profileId: userId === "@self" ? "user_muscle" : userId,
       userId: userId === "@self" ? "user_muscle" : userId,
-      userName: userId === "@self" ? "筋肉マッチョまん" : `ユーザー_${userId.slice(0, 4)}`,
+      userName:
+        userId === "@self"
+          ? "筋肉マッチョまん"
+          : `ユーザー_${userId.slice(0, 4)}`,
       imageUrl: null,
-      url: userId === "@self" ? "http://muscle___instagram" : "https://example.com/user",
-      introduction: userId === "@self" ? "薄磯海岸で毎週末朝トレやってます！よろしくお願いします！" : "いわき在住の tetra ユーザーです。よろしくお願いします！",
+      url:
+        userId === "@self"
+          ? "http://muscle___instagram"
+          : "https://example.com/user",
+      introduction:
+        userId === "@self"
+          ? "薄磯海岸で毎週末朝トレやってます！よろしくお願いします！"
+          : "いわき在住の tetra ユーザーです。よろしくお願いします！",
     };
-    
+
     return NextResponse.json(mockProfile);
   }
 }

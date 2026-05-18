@@ -10,6 +10,10 @@ import {
   LoginMode,
 } from "@/src/features/user/hooks/useLoginMode";
 import Link from "next/link";
+import { useBookmarks } from "@/src/features/user/hooks/useBookmarks";
+import { useFollow } from "@/src/features/user/hooks/useFollow";
+import { useTimeline } from "@/src/features/timeline/hooks/useTimeline";
+import { ThreadCard } from "@/src/features/thread/components/ThreadCard";
 
 const ProfilePage: React.FC = () => {
   const params = useParams();
@@ -35,7 +39,15 @@ const ProfilePage: React.FC = () => {
     fetchProfile,
   } = useProfile(userId, { enabled: isGuest === false });
 
-  // デバッグ用のログ追加
+  // Dynamic Tabs & Backend API integration
+  const [activeTab, setActiveTab] = React.useState<"posts" | "bookmarks" | "following">("posts");
+  const { bookmarkedIds, bookmarkedThreads, toggleBookmark } = useBookmarks();
+  const { followingProfiles, followingIds, toggleFollow } = useFollow();
+  const { items: pastPosts, loading: postsLoading } = useTimeline({
+    ownerUserId: data?.userId || "PENDING",
+  });
+
+  // Debugging logs
   useEffect(() => {
     if (data) {
       console.log("[ProfilePage DEBUG] Route userId:", userId);
@@ -159,7 +171,6 @@ const ProfilePage: React.FC = () => {
                   <p className="text-xs text-gray-400 mb-0.5">ニックネーム</p>
                   <p className="text-sm font-bold">{data.userName || "未設定"}</p>
                 </div>
-                {/* Note: Belonging/Affiliation is not in the data model yet, so skipping or mocking */}
                 <div className="bg-gray-50 rounded-xl px-4 py-3">
                   <p className="text-xs text-gray-400 mb-0.5">マイリンク</p>
                   {data.url ? (
@@ -178,16 +189,137 @@ const ProfilePage: React.FC = () => {
             
             <div className="bg-white mt-2">
               <div className="flex border-b border-gray-100">
-                <button className="flex-1 py-3 text-xs font-bold border-b-2 text-brand border-brand">過去の投稿</button>
-                <button className="flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-gray-400">保存した投稿</button>
-                <button className="flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-gray-400">フォロー中</button>
+                <button
+                  onClick={() => setActiveTab("posts")}
+                  className={`flex-1 py-3 text-xs font-bold border-b-2 transition ${
+                    activeTab === "posts"
+                      ? "text-brand border-brand"
+                      : "border-transparent text-gray-400"
+                  }`}
+                >
+                  過去の投稿
+                </button>
+                <button
+                  onClick={() => setActiveTab("bookmarks")}
+                  className={`flex-1 py-3 text-xs font-bold border-b-2 transition ${
+                    activeTab === "bookmarks"
+                      ? "text-brand border-brand"
+                      : "border-transparent text-gray-400"
+                  }`}
+                >
+                  保存した投稿
+                </button>
+                <button
+                  onClick={() => setActiveTab("following")}
+                  className={`flex-1 py-3 text-xs font-bold border-b-2 transition ${
+                    activeTab === "following"
+                      ? "text-brand border-brand"
+                      : "border-transparent text-gray-400"
+                  }`}
+                >
+                  フォロー中
+                </button>
               </div>
-              {/* Dummy List to match layout since we don't have user's posts yet */}
-              <div className="px-4 pt-4 pb-3 space-y-2.5">
-                <div className="flex flex-col items-center justify-center py-10 text-gray-400 gap-2">
-                  <span className="text-3xl">📭</span>
-                  <p className="text-sm">まだ投稿がありません</p>
-                </div>
+
+              {/* Dynamic Tab Content */}
+              <div className="px-4 pt-4 pb-3 space-y-3">
+                {activeTab === "posts" && (
+                  <>
+                    {postsLoading ? (
+                      <div className="flex justify-center items-center py-10">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand" />
+                      </div>
+                    ) : pastPosts.length > 0 ? (
+                      pastPosts.map((thread) => (
+                        <ThreadCard
+                          key={thread.threadId}
+                          thread={thread}
+                          isBookmarked={bookmarkedIds.has(thread.threadId)}
+                          onToggleBookmark={toggleBookmark}
+                          isCompact
+                          currentUserId={data.userId}
+                          onReport={(id) => console.log("Reported thread:", id)}
+                        />
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-10 text-gray-400 gap-2">
+                        <span className="text-3xl">📭</span>
+                        <p className="text-sm font-medium">まだ投稿がありません</p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {activeTab === "bookmarks" && (
+                  <>
+                    {bookmarkedThreads.length > 0 ? (
+                      bookmarkedThreads.map((thread) => (
+                        <ThreadCard
+                          key={thread.threadId}
+                          thread={thread}
+                          isBookmarked={bookmarkedIds.has(thread.threadId)}
+                          onToggleBookmark={toggleBookmark}
+                          isCompact
+                          currentUserId={data.userId}
+                          onReport={(id) => console.log("Reported thread:", id)}
+                        />
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-10 text-gray-400 gap-2">
+                        <span className="text-3xl">🔖</span>
+                        <p className="text-sm font-medium">保存した投稿はありません</p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {activeTab === "following" && (
+                  <>
+                    {followingProfiles.length > 0 ? (
+                      <div className="space-y-2.5">
+                        {followingProfiles.map((profile) => (
+                          <div
+                            key={profile.userId}
+                            className="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl hover:bg-gray-100 transition cursor-pointer"
+                            onClick={() => router.push(`/profile/${profile.userId}`)}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-black shadow-sm overflow-hidden relative bg-brand flex-shrink-0">
+                                {profile.imageUrl ? (
+                                  <Image
+                                    src={profile.imageUrl}
+                                    alt={profile.userName}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                  />
+                                ) : (
+                                  <span>{profile.userName?.[0] || "👤"}</span>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-bold text-gray-900 truncate">
+                                  {profile.userName}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate mt-0.5">
+                                  {profile.introduction || "自己紹介はありません"}
+                                </p>
+                              </div>
+                            </div>
+                            <svg className="text-gray-400 flex-shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                              <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-10 text-gray-400 gap-2">
+                        <span className="text-3xl">👥</span>
+                        <p className="text-sm font-medium">フォロー中のユーザーはいません</p>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
             <div className="h-4"></div>
@@ -213,7 +345,17 @@ const ProfilePage: React.FC = () => {
               <p className="text-base font-black mb-1">{data.userName}</p>
               <p className="text-xs text-gray-400 mb-4">ユーザー</p>
               <p className="text-sm text-gray-600 text-center leading-relaxed px-2 whitespace-pre-wrap">{data.introduction}</p>
-              <button className="mt-4 px-8 py-2 rounded-full text-sm font-bold bg-brand text-white">フォローする</button>
+              
+              <button
+                onClick={() => toggleFollow(data.userId)}
+                className={`mt-4 px-8 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
+                  followingIds.has(data.userId)
+                    ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200"
+                    : "bg-brand hover:bg-opacity-90 text-white"
+                }`}
+              >
+                {followingIds.has(data.userId) ? "フォロー解除" : "フォローする"}
+              </button>
             </div>
             <div className="bg-white mt-2 px-4 py-1">
               <div className="flex gap-3 items-center py-3.5 border-b border-gray-50">
@@ -227,10 +369,30 @@ const ProfilePage: React.FC = () => {
             </div>
             <div className="bg-white mt-2 px-4 pt-3 pb-3">
               <p className="text-xs font-black text-gray-400 mb-3">この投稿者の投稿</p>
-              <div className="flex flex-col items-center justify-center py-8 text-gray-400 gap-2 bg-gray-50 rounded-xl">
-                <span className="text-2xl">📭</span>
-                <p className="text-xs">投稿はありません</p>
-              </div>
+              {postsLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand" />
+                </div>
+              ) : pastPosts.length > 0 ? (
+                <div className="space-y-3">
+                  {pastPosts.map((thread) => (
+                    <ThreadCard
+                      key={thread.threadId}
+                      thread={thread}
+                      isBookmarked={bookmarkedIds.has(thread.threadId)}
+                      onToggleBookmark={toggleBookmark}
+                      isCompact
+                      currentUserId={data.userId}
+                      onReport={(id) => console.log("Reported thread:", id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-400 gap-2 bg-gray-50 rounded-xl">
+                  <span className="text-2xl">📭</span>
+                  <p className="text-xs">投稿はありません</p>
+                </div>
+              )}
             </div>
             <div className="h-4"></div>
           </div>

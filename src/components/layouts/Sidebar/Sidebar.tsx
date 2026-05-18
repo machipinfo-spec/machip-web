@@ -31,19 +31,43 @@ const navItems = [
 
 export default function SidebarNavigation() {
   const pathname = usePathname();
-  const { data: profile } = useProfile();
+  const { data: profile, fetchProfile } = useProfile();
   const { getLoginMode } = useLoginMode();
   const [isGuest, setIsGuest] = useState<boolean>(true);
   const { requestPermission } = useFcmToken();
   const { openPost } = useModals();
 
+  // レンダリングごとの状態を確認するためのデバッグログを追加
+  console.log("[SidebarNavigation] Render state:", {
+    profile,
+    profileUserName: profile?.userName,
+    profileProfileId: profile?.profileId,
+    isGuest,
+  });
+
   useEffect(() => {
     const checkMode = async () => {
       const mode = await getLoginMode();
+      console.log("[SidebarNavigation] useEffect checkMode:", { mode });
       setIsGuest(mode === LoginMode.GUEST);
+
+      // ログイン状態であり、まだプロフィールが取得できていない場合に取得を実行
+      if (mode === LoginMode.LOGIN && !profile) {
+        console.log(
+          "[SidebarNavigation] User is logged in but profile is null. Calling fetchProfile()...",
+        );
+        try {
+          await fetchProfile();
+          console.log(
+            "[SidebarNavigation] fetchProfile completed successfully.",
+          );
+        } catch (error) {
+          console.error("[SidebarNavigation] fetchProfile failed:", error);
+        }
+      }
     };
     checkMode();
-  }, [getLoginMode]);
+  }, [getLoginMode, profile, fetchProfile]);
 
   const { unreadCount } = useInboxContext();
 

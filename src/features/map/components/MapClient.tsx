@@ -94,7 +94,7 @@ export const MapClient: React.FC<MapClientProps> = ({ zoom }) => {
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col md:max-w-2xl md:mx-auto md:w-full md:border-x md:border-gray-200 md:shadow-sm">
+    <div className="absolute inset-0 flex flex-col w-full">
       
       {/* Map Header (Mobile only) */}
       <div className="absolute top-4 left-4 z-20 md:hidden flex gap-2">

@@ -16,6 +16,7 @@ import {
   LoginMode,
 } from "@/src/features/user/hooks/useLoginMode";
 import { SignUpPromptDialog } from "@/src/features/user/components/SignUpPromptDialog";
+import { useBookmarks } from "@/src/features/user/hooks/useBookmarks";
 
 type Props = {
   initialItems: Thread[];
@@ -30,9 +31,7 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
   });
   const { createThread, submitReply } = useThread();
   const [openImage, setOpenImage] = useState<string | null>(null);
-  const [bookmarkedThreads, setBookmarkedThreads] = useState<Set<string>>(
-    new Set(),
-  );
+  const { bookmarkedIds: bookmarkedThreads, toggleBookmark } = useBookmarks();
 
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [replyTarget, setReplyTarget] = useState<Thread | null>(null);
@@ -71,18 +70,6 @@ export default function TimelineClient({ initialItems, ownUserId }: Props) {
       console.error(err);
       alert(err instanceof Error ? err.message : "投稿に失敗しました");
     }
-  };
-
-  const toggleBookmark = (threadId: string) => {
-    setBookmarkedThreads((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(threadId)) {
-        newSet.delete(threadId);
-      } else {
-        newSet.add(threadId);
-      }
-      return newSet;
-    });
   };
 
   const handleDeleted = async (threadId: string) => {
