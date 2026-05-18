@@ -108,15 +108,3 @@
   ```
 
 ---
-
-## 3. プロフィールモデルの拡張
-
-### 3.1 「所属 (affiliation / organization)」フィールドの追加
-UIデザイン上で「所属（例: 平三町目）」が頻繁に表示されますが、現在の `UserProfile` モデルにはこれに対応する属性がありません。
-
-- **変更対象モデル / スキーマ**: `UserProfile`
-- **追加項目**:
-  - `affiliation` (string, 任意): 所属組織・地域・グループ名など
-- **対象API**:
-  - `GET /user/profile/:userId` (取得時に `affiliation` を追加)
-  - `PUT /user/profile` (作成・編集時に `affiliation` を保存可能にする)
