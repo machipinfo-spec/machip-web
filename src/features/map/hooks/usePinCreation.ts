@@ -96,6 +96,8 @@ export const usePinCreation = (
             detail: data.detail,
             url: data.url,
             imageUrl,
+            iconEmoji: data.iconEmoji || undefined,
+            iconColor: data.iconColor || undefined,
           });
           success = true;
         } else {
@@ -106,6 +108,8 @@ export const usePinCreation = (
             threadName,
             category,
             imageUrl,
+            iconEmoji: data.iconEmoji || undefined,
+            iconColor: data.iconColor || undefined,
           });
           success = true;
         }

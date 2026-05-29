@@ -16,6 +16,8 @@ export type ConfirmData = {
   image: File | null;
   url: string;
   detail: string;
+  iconEmoji: string | null;
+  iconColor: string | null;
 };
 
 interface MapPostSheetProps {
@@ -132,6 +134,8 @@ export const MapPostSheet: React.FC<MapPostSheetProps> = ({
       image: selectedImage,
       url,
       detail,
+      iconEmoji: selectedIcon?.emoji || null,
+      iconColor: selectedIcon?.color || null,
     });
     resetForm();
   };
@@ -153,7 +157,11 @@ export const MapPostSheet: React.FC<MapPostSheetProps> = ({
         className={`absolute inset-0 bg-black/40 ${isClosing ? 'opacity-0 transition-opacity duration-200' : 'fade-in'}`}
         onClick={() => !savingPin && handleClose()}
       />
-      <div className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto ${isClosing ? 'sheet-out' : 'sheet-in'}`}>
+      <div 
+        role="dialog"
+        aria-modal="true"
+        className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto ${isClosing ? 'sheet-out' : 'sheet-in'}`}
+      >
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mt-3"></div>
         <div className="flex items-center justify-between px-5 pt-4 pb-4 border-b border-gray-100">
           <h2 className="text-base font-black">ピンを立てる</h2>
@@ -210,17 +218,7 @@ export const MapPostSheet: React.FC<MapPostSheetProps> = ({
             />
           </div>
 
-          {/* 場所（タイトル/スレッド名と同期するが、ユーザーには「場所」として見せる） */}
-          <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1.5">場所</label>
-            <input 
-              type="text" 
-              value={threadName}
-              onChange={(e) => onThreadNameChange(e.target.value)}
-              placeholder="地名を入力" 
-              className="w-full h-11 border border-gray-200 rounded-xl px-3 text-sm text-gray-700 outline-none bg-white focus:border-brand transition-colors" 
-            />
-          </div>
+
 
           {/* 日付（イベント時のみ表示） */}
           {isEvent && (
