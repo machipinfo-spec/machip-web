@@ -107,7 +107,18 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
+console.log("[AuthInit] Environment variables:", {
+  AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST,
+  NEXTAUTH_TRUST_HOST: process.env.NEXTAUTH_TRUST_HOST,
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  AUTH_URL: process.env.AUTH_URL,
+  COGNITO_ISSUER: process.env.COGNITO_ISSUER,
+  COGNITO_CLIENT_ID: process.env.COGNITO_CLIENT_ID,
+  COGNITO_CLIENT_SECRET_SET: !!process.env.COGNITO_CLIENT_SECRET,
+});
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
     Cognito({
       issuer: cognitoIssuer,
