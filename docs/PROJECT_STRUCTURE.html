@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetra Web プロジェクト構成説明書</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #131b2e;
+            --bg-card: rgba(22, 30, 52, 0.7);
+            --bg-card-hover: rgba(29, 39, 68, 0.8);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(99, 102, 241, 0.4);
+            
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --accent-indigo: #6366f1;
+            --accent-cyan: #06b6d4;
+            --accent-violet: #8b5cf6;
+            --accent-rose: #f43f5e;
+            
+            --neon-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+            --neon-glow-cyan: 0 0 20px rgba(6, 182, 212, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            font-family: 'Outfit', 'Noto Sans JP', 'Inter', sans-serif;
+            line-height: 1.6;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 共通スクロールバー */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-indigo);
+        }
+
+        /* コンテナ */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px 80px 20px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px 15px;
+            }
+        }
+
+        /* サイドバー (目次) */
+        .sidebar {
+            position: sticky;
+            top: 40px;
+            height: fit-content;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(to bottom, var(--accent-indigo), var(--accent-cyan));
+            border-radius: 2px;
+        }
+
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-item {
+            margin-bottom: 12px;
+        }
+
+        .toc-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toc-link:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateX(4px);
+        }
+
+        .toc-link.active {
+            color: var(--text-primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.15));
+            border-left: 3px solid var(--accent-indigo);
+            font-weight: 600;
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        /* ヘッダーカード */
+        .header-card {
+            background: linear-gradient(135deg, rgba(19, 27, 46, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--neon-glow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .header-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan));
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2rem;
+            }
+        }
+
+        .main-desc {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 800px;
+        }
+
+        /* セクション共通カード */
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .section-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--neon-glow);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 16px;
+        }
+
+        .section-icon {
+            font-size: 1.8rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ターミナル風ツリー */
+        .terminal {
+            background: #05070c;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .terminal-header {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .t-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .t-btn.red { background: #ef4444; }
+        .t-btn.yellow { background: #f59e0b; }
+        .t-btn.green { background: #10b981; }
+
+        .terminal-title {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .terminal-body {
+            padding: 20px;
+            overflow-x: auto;
+            color: #38bdf8; /* cyan-400 */
+        }
+
+        .tree-text {
+            white-space: pre;
+            color: #a5f3fc;
+            line-height: 1.5;
+        }
+
+        .tree-comment {
+            color: #64748b;
+        }
+
+        /* 詳細リストグリッド */
+        .grid-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .sub-section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 20px 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sub-section-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-cyan);
+            display: inline-block;
+        }
+
+        .item-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 18px 24px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .item-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #fff;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .item-name:hover {
+            color: var(--accent-cyan);
+        }
+
+        .item-name svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .item-tag {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .tag-dir {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .tag-file {
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .item-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .sub-list {
+            margin-top: 8px;
+            padding-left: 20px;
+            border-left: 2px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sub-item {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .sub-item-name {
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        /* 除外対象エリア */
+        .exclusion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .exclusion-card {
+            background: rgba(244, 63, 94, 0.02);
+            border: 1px solid rgba(244, 63, 94, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .exclusion-card:hover {
+            border-color: rgba(244, 63, 94, 0.3);
+            background: rgba(244, 63, 94, 0.04);
+            transform: translateY(-2px);
+        }
+
+        .exclusion-name {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            color: var(--accent-rose);
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .exclusion-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* 矢印などのアイコンSVG */
+        .icon-folder {
+            color: #eab308; /* yellow-500 */
+        }
+        .icon-file {
+            color: #60a5fa; /* blue-400 */
+        }
+        .icon-setting {
+            color: #a855f7; /* purple-500 */
+        }
+
+        /* フッター */
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- サイドバー -->
+        <aside class="sidebar">
+            <div class="sidebar-title">目次</div>
+            <ul class="toc-list">
+                <li class="toc-item"><a href="#overview" class="toc-link active">概要</a></li>
+                <li class="toc-item"><a href="#structure" class="toc-link">ディレクトリ構造</a></li>
+                <li class="toc-item"><a href="#directories" class="toc-link">主要フォルダ</a></li>
+                <li class="toc-item"><a href="#files" class="toc-link">設定ファイル</a></li>
+                <li class="toc-item"><a href="#exclusions" class="toc-link">Git除外対象</a></li>
+            </ul>
+        </aside>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- ヘッダーカード -->
+            <section id="overview" class="header-card">
+                <div class="header-content">
+                    <span class="badge">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        OFFICIAL DOCUMENTATION
+                    </span>
+                    <h1 class="main-title">Tetra Web プロジェクト構成説明書</h1>
+                    <p class="main-desc">
+                        本ドキュメントは、プロジェクト（<code>tetra-web</code>）のTOPディレクトリ配下にあるファイルおよびフォルダの構成とそれぞれの役割について視覚的に説明したものです。開発プロセスおよびファイル配置の理解にご活用ください。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ディレクトリ構造 -->
+            <section id="structure" class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">📂</span>
+                    <h2 class="section-title">ディレクトリ・ファイル構造（概要）</h2>
+                </div>
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-buttons">
+                            <span class="t-btn red"></span>
+                            <span class="t-btn yellow"></span>
+                            <span class="t-btn green"></span>
+                        </div>
+                        <div class="terminal-title">bash - project tree</div>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="tree-text">tetra-web/
+├── <span style="color:#f59e0b">.vscode/</span>               <span class="tree-comment"># VS Code プロジェクト設定</span>
+├── <span style="color:#f59e0b">docs/</span>                  <span class="tree-comment"># ドキュメント関連</span>
+│   └── <span style="color:#f59e0b">e2e-test/</span>          <span class="tree-comment"># E2Eテストに関するドキュメント</span>
+├── <span style="color:#f59e0b">e2e/</span>                   <span class="tree-comment"># E2Eテストコード（Playwright）</span>
+├── <span style="color:#f59e0b">playwright/</span>            <span class="tree-comment"># Playwright用データ</span>
+│   └── <span style="color:#f59e0b">.auth/</span>             <span class="tree-comment"># 認証セッション情報</span>
+├── <span style="color:#f59e0b">public/</span>                <span class="tree-comment"># 静的アセット（画像、フォント、サービスワーカー等）</span>
+├── <span style="color:#f59e0b">src/</span>                   <span class="tree-comment"># アプリケーションソースコード</span>
+│   ├── <span style="color:#f59e0b">app/</span>               <span class="tree-comment"># 画面・ルーティング（Next.js App Router）</span>
+│   ├── <span style="color:#f59e0b">components/</span>        <span class="tree-comment"># 共通UIコンポーネント</span>
+│   ├── <span style="color:#f59e0b">contexts/</span>          <span class="tree-comment"># Reactコンテキスト</span>
+│   ├── <span style="color:#f59e0b">features/</span>          <span class="tree-comment"># 機能ごとのコンポーネント・ロジック</span>
+│   ├── <span style="color:#f59e0b">hooks/</span>             <span class="tree-comment"># カスタムReactフック</span>
+│   ├── <span style="color:#f59e0b">lib/</span>               <span class="tree-comment"># 外部ライブラリ連携の初期設定</span>
+│   ├── <span style="color:#f59e0b">services/</span>          <span class="tree-comment"># API・外部サービス（Cognito, Firebase）連携</span>
+│   ├── <span style="color:#f59e0b">types/</span>             <span class="tree-comment"># TypeScript型定義</span>
+│   └── <span style="color:#f59e0b">utils/</span>             <span class="tree-comment"># 共通ユーティリティ関数</span>
+├── .gitignore             <span class="tree-comment"># Git除外設定ファイル</span>
+├── LICENSE                <span class="tree-comment"># ライセンス定義ファイル</span>
+├── README.md              <span class="tree-comment"># プロジェクトの概要・セットアップ手順</span>
+├── amplify.yml            <span class="tree-comment"># AWS Amplify のビルド・デプロイ設定</span>
+├── app.html               <span class="tree-comment"># 画面確認・テスト用HTML</span>
+├── app-mobile.html        <span class="tree-comment"># モバイル画面確認・テスト用HTML</span>
+├── debug-session.json     <span class="tree-comment"># デバッグ用設定・セッションデータ</span>
+├── eslint.config.mjs      <span class="tree-comment"># ESLint（静的コード解析）設定</span>
+├── next.config.ts         <span class="tree-comment"># Next.js フレームワーク設定</span>
+├── package.json           <span class="tree-comment"># プロジェクト依存関係・実行スクリプト定義</span>
+├── package-lock.json      <span class="tree-comment"># 依存パッケージのロックファイル</span>
+├── playwright.config.ts   <span class="tree-comment"># Playwright テストランナー設定</span>
+├── postcss.config.mjs     <span class="tree-comment"># PostCSS (CSSプロセッサ) 設定</span>
+├── tsconfig.json          <span class="tree-comment"># TypeScript コンパイラ設定</span>
+└── task.md                <span class="tree-comment"># タスク管理・進捗状況メモ</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 主要フォルダ詳細 -->
+            <section id="directories" class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">🗂️</span>
+                    <h2 class="section-title">主要フォルダの詳細説明</h2>
+                </div>
+                <div class="grid-list">
+                    <!-- .vscode -->
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/.vscode/" class="item-name">
+                                <svg class="icon-setting" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                .vscode
+                            </a>
+                            <span class="item-tag tag-dir">DIR</span>
+                        </div>
+                        <p class="item-desc">VS Codeでの開発用の共有設定フォルダ。エディタ共通設定の <code>settings.json</code> などが置かれています。</p>
+                    </div>
+
+                    <!-- docs -->
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/docs/" class="item-name">
+                                <svg class="icon-folder" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                docs
+                            </a>
+                            <span class="item-tag tag-dir">DIR</span>
+                        </div>
+                        <p class="item-desc">仕様書やガイドなどの関連ドキュメントを配置するフォルダ。E2Eテスト仕様に関する <code>e2e-test</code> フォルダなどが含まれます。</p>
+                    </div>
+
+                    <!-- e2e -->
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/e2e/" class="item-name">
+                                <svg class="icon-folder" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                e2e
+                            </a>
+                            <span class="item-tag tag-dir">DIR</span>
+                        </div>
+                        <p class="item-desc">Playwright によるエンドツーエンド（E2E）テストコード群。以下の構造でテストが整理されています：</p>
+                        <div class="sub-list">
+                            <div class="sub-item"><span class="sub-item-name">auth.setup.ts</span>: 認証フェーズの事前共通処理</div>
+                            <div class="sub-item"><span class="sub-item-name">guest-mode/</span>: 未ログイン（ゲスト）状態のテストケース</div>
+                            <div class="sub-item"><span class="sub-item-name">normal-mode/</span>: 通常ログイン状態のテストケース</div>
+                        </div>
+                    </div>
+
+                    <!-- playwright -->
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/playwright/" class="item-name">
+                                <svg class="icon-folder" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                playwright
+                            </a>
+                            <span class="item-tag tag-dir">DIR</span>
+                        </div>
+                        <p class="item-desc">Playwrightの実行に関わる内部情報フォルダ。<code>.auth/user.json</code> 等にログインセッション情報が一時的にキャッシュされます。</p>
+                    </div>
+
+                    <!-- public -->
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/public/" class="item-name">
+                                <svg class="icon-folder" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                public
+                            </a>
+                            <span class="item-tag tag-dir">DIR</span>
+                        </div>
+                        <p class="item-desc">直接Web公開される画像やファビコン、各種静的ファイル。Firebaseプッシュ通知用の <code>firebase-messaging-sw.js</code>（サービスワーカー）も含みます。</p>
+                    </div>
+
+                    <!-- src -->
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/src/" class="item-name">
+                                <svg class="icon-folder" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                src
+                            </a>
+                            <span class="item-tag tag-dir">DIR</span>
+                        </div>
+                        <p class="item-desc">アプリケーションのメインロジックを構成する、最重要フォルダです：</p>
+                        <div class="sub-list">
+                            <div class="sub-item"><span class="sub-item-name">app/</span>: Next.js App Router 規格のページ構造とルーティング設計</div>
+                            <div class="sub-item"><span class="sub-item-name">components/</span>: プロジェクト全体で利用可能な共通UIパーツ群</div>
+                            <div class="sub-item"><span class="sub-item-name">contexts/</span>: React Context API による全域の状態管理ロジック</div>
+                            <div class="sub-item"><span class="sub-item-name">features/</span>: 各機能ドメインに特化したロジックとビューの集まり</div>
+                            <div class="sub-item"><span class="sub-item-name">hooks/</span>: リアクティブ設計のためのカスタムフック群</div>
+                            <div class="sub-item"><span class="sub-item-name">lib/</span>: 各種プラグインや初期設定の仲介モジュール</div>
+                            <div class="sub-item"><span class="sub-item-name">services/</span>: Cognito（認証）やFirebase（データベース/FCM）等との連携 API</div>
+                            <div class="sub-item"><span class="sub-item-name">types/</span>: TypeScript の共有型定義ファイル</div>
+                            <div class="sub-item"><span class="sub-item-name">utils/</span>: 計算や日付処理などの共通ユーティリティ（純粋関数）</div>
+                            <div class="sub-item"><span class="sub-item-name">middleware.ts</span>: パスチェックや認証制御のリダイレクトミドルウェア</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 設定ファイル・ドキュメント -->
+            <section id="files" class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">⚙️</span>
+                    <h2 class="section-title">設定ファイル・ルートドキュメント</h2>
+                </div>
+                <div class="grid-list">
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/.gitignore" class="item-name">
+                                <svg class="icon-file" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                .gitignore
+                            </a>
+                            <span class="item-tag tag-file">FILE</span>
+                        </div>
+                        <p class="item-desc">Gitリポジトリ管理から除外するディレクトリおよびファイルを定義します。</p>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/amplify.yml" class="item-name">
+                                <svg class="icon-file" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                amplify.yml
+                            </a>
+                            <span class="item-tag tag-file">FILE</span>
+                        </div>
+                        <p class="item-desc">AWS Amplify ホスティングにおける CI/CD ビルド手順、キャッシュポリシー、デプロイディレクトリを指定します。</p>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/eslint.config.mjs" class="item-name">
+                                <svg class="icon-file" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                eslint.config.mjs
+                            </a>
+                            <span class="item-tag tag-file">FILE</span>
+                        </div>
+                        <p class="item-desc">コード品質およびフォーマットを統一するための ESLint 設定ファイル（v9 Flat Config形式）。</p>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/next.config.ts" class="item-name">
+                                <svg class="icon-file" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                next.config.ts
+                            </a>
+                            <span class="item-tag tag-file">FILE</span>
+                        </div>
+                        <p class="item-desc">Next.js のビルドオプション、画像ドメイン許可設定などをコントロールします。</p>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/package.json" class="item-name">
+                                <svg class="icon-file" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                package.json
+                            </a>
+                            <span class="item-tag tag-file">FILE</span>
+                        </div>
+                        <p class="item-desc">プロジェクトの名称、実行スクリプト（<code>dev</code>, <code>build</code> 等）、および依存ライブラリのバージョンリスト。</p>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/playwright.config.ts" class="item-name">
+                                <svg class="icon-file" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                playwright.config.ts
+                            </a>
+                            <span class="item-tag tag-file">FILE</span>
+                        </div>
+                        <p class="item-desc">E2Eテストフレームワーク Playwright のブラウザ設定、並列処理の有無、ローカル開発サーバー起動手順などの定義。</p>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-header">
+                            <a href="file:///c:/Users/mosam/Documents/work/taira/git/tetra-web/tsconfig.json" class="item-name">
+                                <svg class="icon-file" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                tsconfig.json
+                            </a>
+                            <span class="item-tag tag-file">FILE</span>
+                        </div>
+                        <p class="item-desc">TypeScriptのコンパイル設定。パスエイリアス（<code>@/*</code>）や strict モードなどのルール設定。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Git除外対象 -->
+            <section id="exclusions" class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">🚫</span>
+                    <h2 class="section-title">Git除外対象（.gitignore）</h2>
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    機密情報の流出防止や、ビルド生成ファイルによる容量肥大化を避けるため、以下のリソースは Git 管理から明示的に除外されています。
+                </p>
+                <div class="exclusion-grid">
+                    <div class="exclusion-card">
+                        <div class="exclusion-name">node_modules/</div>
+                        <div class="exclusion-desc">npm パッケージ依存関係の実体。</div>
+                    </div>
+                    <div class="exclusion-card">
+                        <div class="exclusion-name">.next/ , out/ , build/</div>
+                        <div class="exclusion-desc">ビルドにより生成される成果物や一時キャッシュ。</div>
+                    </div>
+                    <div class="exclusion-card">
+                        <div class="exclusion-name">.env.local / .env*</div>
+                        <div class="exclusion-desc">各種APIキーや認証資格情報などの秘密キー環境変数。</div>
+                    </div>
+                    <div class="exclusion-card">
+                        <div class="exclusion-name">*.tsbuildinfo</div>
+                        <div class="exclusion-desc">TypeScript のインクリメンタルコンパイル用のキャッシュデータ。</div>
+                    </div>
+                    <div class="exclusion-card">
+                        <div class="exclusion-name">next-env.d.ts</div>
+                        <div class="exclusion-desc">Next.js がビルド時に自動生成する型情報ファイル。</div>
+                    </div>
+                    <div class="exclusion-card">
+                        <div class="exclusion-name">.git/</div>
+                        <div class="exclusion-desc">Git の変更履歴・管理メタデータ。</div>
+                    </div>
+                </div>
+            </section>
+
+            <footer>
+                <p>&copy; 2026 Tetra Web Documentation. Generated by Antigravity.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- サイドバーアクティブクラス制御の簡易スクリプト -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const id = entry.target.getAttribute('id');
+                    const link = document.querySelector(`.toc-link[href="#${id}"]`);
+                    if (entry.isIntersecting) {
+                        document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
+                        if (link) link.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.2, rootMargin: "-100px 0px -70% 0px" });
+
+            document.querySelectorAll('section').forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

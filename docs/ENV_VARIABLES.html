@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetra Web 環境変数構成仕様書</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #131b2e;
+            --bg-card: rgba(22, 30, 52, 0.7);
+            --bg-card-hover: rgba(29, 39, 68, 0.8);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(99, 102, 241, 0.4);
+            
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --accent-indigo: #6366f1;
+            --accent-cyan: #06b6d4;
+            --accent-violet: #8b5cf6;
+            --accent-rose: #f43f5e;
+            --accent-green: #10b981;
+            
+            --neon-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.04) 0%, transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            font-family: 'Outfit', 'Noto Sans JP', 'Inter', sans-serif;
+            line-height: 1.65;
+            min-height: 100vh;
+        }
+
+        /* スクロールバー */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-indigo);
+        }
+
+        /* レイアウト */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px 80px 20px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px 15px;
+            }
+        }
+
+        /* サイドバー */
+        .sidebar {
+            position: sticky;
+            top: 40px;
+            height: fit-content;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 10;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(to bottom, var(--accent-indigo), var(--accent-cyan));
+            border-radius: 2px;
+        }
+
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-item {
+            margin-bottom: 12px;
+        }
+
+        .toc-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toc-link:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateX(4px);
+        }
+
+        .toc-link.active {
+            color: var(--text-primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.15));
+            border-left: 3px solid var(--accent-indigo);
+            font-weight: 600;
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        /* ヘッダーカード */
+        .header-card {
+            background: linear-gradient(135deg, rgba(19, 27, 46, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--neon-glow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan));
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .main-desc {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 800px;
+        }
+
+        /* セクションカード */
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 16px;
+        }
+
+        .section-icon {
+            font-size: 1.8rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* テーブルスタイル */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.92rem;
+            background: rgba(8, 12, 20, 0.6);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff;
+            font-weight: 600;
+            padding: 14px 18px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        td {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+            color: #fff;
+        }
+
+        .env-key {
+            font-family: 'Fira Code', monospace;
+            font-weight: 500;
+            color: var(--accent-cyan);
+        }
+
+        .scope-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            display: inline-block;
+            letter-spacing: 0.02em;
+        }
+
+        .scope-client {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .scope-server {
+            background: rgba(139, 92, 246, 0.1);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        /* 警告・注記 */
+        .callout {
+            background: rgba(244, 63, 94, 0.06);
+            border-left: 4px solid var(--accent-rose);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+        }
+
+        .callout-title {
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .callout-title svg {
+            color: var(--accent-rose);
+        }
+
+        /* コード表示 */
+        pre {
+            background: #05070c;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.88rem;
+            overflow-x: auto;
+            color: #a5f3fc;
+            margin-bottom: 20px;
+        }
+
+        h3.block-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 28px 0 14px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3.block-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-indigo);
+            display: inline-block;
+        }
+
+        /* フッター */
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- サイドバー -->
+        <aside class="sidebar">
+            <div class="sidebar-title">目次</div>
+            <ul class="toc-list">
+                <li class="toc-item"><a href="#overview" class="toc-link active">仕様概要</a></li>
+                <li class="toc-item"><a href="#auth-env" class="toc-link">NextAuth・認証関連</a></li>
+                <li class="toc-item"><a href="#firebase-env" class="toc-link">Firebase・FCM関連</a></li>
+                <li class="toc-item"><a href="#maps-env" class="toc-link">Google Maps関連</a></li>
+                <li class="toc-item"><a href="#api-env" class="toc-link">API・共通設定</a></li>
+                <li class="toc-item"><a href="#how-to-use" class="toc-link">設定手順・注意点</a></li>
+            </ul>
+        </aside>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- ヘッダーカード -->
+            <section id="overview" class="header-card">
+                <div class="header-content">
+                    <span class="badge">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        SECURE CONFIGURATION
+                    </span>
+                    <h1 class="main-title">環境変数（Environment Variables）構成仕様書</h1>
+                    <p class="main-desc">
+                        本ドキュメントは、プロジェクト（<code>tetra-web</code>）で利用される各種環境変数、クライアント露出スコープ、役割および設定例についてまとめたものです。
+                    </p>
+                </div>
+            </section>
+
+            <!-- セキュリティ・動作仕様 -->
+            <section class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">💡</span>
+                    <h2 class="section-title">Next.js 環境変数の露出仕様について</h2>
+                </div>
+                <p>
+                    Next.js では、環境変数のプレフィックス（接頭辞）によってセキュリティスコープが厳格に区別されます。
+                </p>
+                <ul>
+                    <li><strong><code>NEXT_PUBLIC_</code> プレフィックスあり (Client & Server)</strong>:<br>
+                        ビルド時にブラウザ用 JavaScript コードへ直接埋め込まれます。クライアントサイド（コンポーネントやカスタムフック）で安全にアクセスできます。APIキーなどの公開可能な情報にのみ使用してください。
+                    </li>
+                    <li style="margin-top:10px"><strong>プレフィックスなし (Server Only)</strong>:<br>
+                        サーバーサイド（Next.js API Routes, Server Actions, Middleware, `getStaticProps`等）のみでアクセス可能です。クライアント側のブラウザには一切送信されません。CognitoのClient SecretやAPI暗号化キーなどの機密情報を安全に隠蔽するために使用します。
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 1. NextAuth・Cognito認証関連 -->
+            <section id="auth-env" class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">🔐</span>
+                    <h2 class="section-title">1. NextAuth & AWS Cognito 認証関連</h2>
+                </div>
+                <p>NextAuth.jsとAWS Cognitoを連携して安全なJWTセッション認証および更新フローを行うための設定です。</p>
+                
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>キー名</th>
+                                <th>スコープ</th>
+                                <th>説明</th>
+                                <th>設定例 (ローカル)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="env-key">COGNITO_ISSUER</td>
+                                <td><span class="scope-badge scope-server">Server</span></td>
+                                <td>CognitoユーザープールのエンドポイントURL（認証トークン発行元）</td>
+                                <td><code>https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_XXXXX</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">COGNITO_CLIENT_ID</td>
+                                <td><span class="scope-badge scope-server">Server</span></td>
+                                <td>Cognito ユーザープール内に作成されたアプリクライアントのID</td>
+                                <td><code>7hxxxxxxxxxxxxxxxxxxxx</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">COGNITO_CLIENT_SECRET</td>
+                                <td><span class="scope-badge scope-server">Server</span></td>
+                                <td>Cognitoアプリクライアントのシークレット（※トークンリフレッシュ時等に必須）</td>
+                                <td><code>1vxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">NEXTAUTH_URL</td>
+                                <td><span class="scope-badge scope-server">Server</span></td>
+                                <td>NextAuthがリダイレクトやコールバック基準として使用するアプリのベースURL</td>
+                                <td><code>http://localhost:3000</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">AUTH_SECRET</td>
+                                <td><span class="scope-badge scope-server">Server</span></td>
+                                <td>NextAuthがセッションCookieを暗号化するために使用するランダムな秘密文字列</td>
+                                <td><code>b6d... (openssl rand -base64 32 等で生成)</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">AUTH_TRUST_HOST</td>
+                                <td><span class="scope-badge scope-server">Server</span></td>
+                                <td>VercelやAmplifyなどプロキシ環境下でホストの信頼を強制するフラグ</td>
+                                <td><code>true</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">NEXTAUTH_TRUST_HOST</td>
+                                <td><span class="scope-badge scope-server">Server</span></td>
+                                <td>（下位互換/特定ライブラリ用）ホスト信頼フラグ</td>
+                                <td><code>true</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 2. Firebase・FCM関連 -->
+            <section id="firebase-env" class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">🔥</span>
+                    <h2 class="section-title">2. Firebase & FCM (プッシュ通知) 関連</h2>
+                </div>
+                <p>Firebase SDKの初期化、およびFirebase Cloud Messaging（FCM）によるプッシュ通知受信を行うための設定です。</p>
+                
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>キー名</th>
+                                <th>スコープ</th>
+                                <th>説明</th>
+                                <th>設定例</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_FIREBASE_API_KEY</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>Firebase Webクライアント初期化用APIキー</td>
+                                <td><code>AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXX</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>Firebase認証ドメイン</td>
+                                <td><code>project-id.firebaseapp.com</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_FIREBASE_PROJECT_ID</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>Firebase プロジェクトID</td>
+                                <td><code>project-id</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>Firebase Cloud Storageのデフォルトバケット名</td>
+                                <td><code>project-id.appspot.com</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>FCMメッセージングセンダーID</td>
+                                <td><code>123456789012</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_FIREBASE_APP_ID</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>Firebase アプリケーションID</td>
+                                <td><code>1:123456789012:web:a1b2c3d4e5f6</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_FIREBASE_VAPID_KEY</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>FCMのWebプッシュ認証キー (VAPID)</td>
+                                <td><code>BXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. Google Maps関連 -->
+            <section id="maps-env" class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">🗺️</span>
+                    <h2 class="section-title">3. Google Maps 関連</h2>
+                </div>
+                <p>Google Maps JavaScript APIを活用して、マップの初期化やカスタムスタイルレンダリングを行うための設定です。</p>
+                
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>キー名</th>
+                                <th>スコープ</th>
+                                <th>説明</th>
+                                <th>設定例</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>Google Maps APIキー（※特定のHTTPリファラー制限を推奨）</td>
+                                <td><code>AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</code></td>
+                            </tr>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_GOOGLE_MAP_ID</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>Google Cloud Console上で作成されたカスタムマップスタイルID</td>
+                                <td><code>a1b2c3d4e5f67890</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 4. API・共通設定 -->
+            <section id="api-env" class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">🔗</span>
+                    <h2 class="section-title">4. API & 共通設定</h2>
+                </div>
+                <p>バックエンドAPIサーバーの接続先情報です。</p>
+                
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>キー名</th>
+                                <th>スコープ</th>
+                                <th>説明</th>
+                                <th>設定例</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="env-key">NEXT_PUBLIC_API_URL</td>
+                                <td><span class="scope-badge scope-client">Client</span></td>
+                                <td>データ取得元のバックエンドAPI（Amplify Mock, API Gateway等）のベースエンドポイント</td>
+                                <td><code>https://api.yourdomain.com</code> (ローカル時は <code>http://localhost:3000</code> にフォールバック)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 設定手順・注意事項 -->
+            <section id="how-to-use" class="section-card">
+                <div class="section-header">
+                    <span class="section-icon">🛠️</span>
+                    <h2 class="section-title">環境変数の設定手順と注意点</h2>
+                </div>
+
+                <h3 class="block-title">ローカル開発環境での準備</h3>
+                <p>
+                    ローカル開発環境では、プロジェクトのルートディレクトリ直下に <strong><code>.env.local</code></strong> ファイルを作成し、上記の環境変数を記述します。
+                </p>
+                <pre><code># AWS Cognito
+COGNITO_ISSUER=https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_XXXXX
+COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxx
+COGNITO_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+AUTH_SECRET=openssl_rand_base64_string_here
+AUTH_TRUST_HOST=true
+
+# Firebase & FCM
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=project-id.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=project-id.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789012
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789012:web:a1b2c3d4e5f6
+NEXT_PUBLIC_FIREBASE_VAPID_KEY=B...
+
+# Google Maps
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSy...
+NEXT_PUBLIC_GOOGLE_MAP_ID=a1b2c3d4e5f67890
+
+# API Endpoint
+NEXT_PUBLIC_API_URL=http://localhost:3000</code></pre>
+
+                <div class="callout">
+                    <div class="callout-title">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        【最重要】セキュリティとGit管理
+                    </div>
+                    <p style="margin-bottom:0">
+                        <code>.env.local</code> および <code>.env</code> に関連するファイルは、秘密鍵や認証シークレットが記載されているため、<strong>絶対にGit管理（リモートリポジトリへのプッシュ）を行わないでください。</strong> 既に <code>.gitignore</code> で保護されていることを確認済みですが、手動でのコミット強制等は絶対に行わないよう厳守してください。
+                    </p>
+                </div>
+
+                <h3 class="block-title">AWS Amplify (ホスティング) での設定方法</h3>
+                <p>
+                    本番・検証用サーバーである AWS Amplify Console にデプロイする際は、Amplifyの管理画面の「アプリの設定」 &gt; 「環境変数」にて登録を行います。
+                    ビルド時（`next build`）に <code>NEXT_PUBLIC_</code> プレフィックスの付く環境変数を埋め込むために、コンソールでの変数の正確な指定が必要です。
+                </p>
+            </section>
+
+            <footer>
+                <p>&copy; 2026 Tetra Web Documentation. Generated by Antigravity.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- JS スクロール制御 -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const links = document.querySelectorAll('.toc-link');
+            const sections = document.querySelectorAll('section');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-100px 0px -70% 0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        links.forEach(link => {
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.add('active');
+                            } else {
+                                link.classList.remove('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+        });
+    </script>
+</body>
+</html>
