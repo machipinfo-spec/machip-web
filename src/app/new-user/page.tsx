@@ -138,21 +138,21 @@ const NewUserPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-500 p-4 relative">
-      <div className="max-w-[480px] w-full bg-white rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.2)] overflow-hidden relative z-10">
-        <div className="p-8 sm:p-6">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold text-gray-800 mb-2 tracking-tight">
-              アカウント作成
-            </h2>
-            <p className="text-sm text-gray-500 mt-2">
-              あなたのプロフィールを設定しましょう
-            </p>
-          </div>
+    <div className="flex-1 h-full overflow-y-auto bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-500 relative">
+      <div className="min-h-full flex items-center justify-center p-4">
+        <div className="max-w-[480px] w-full bg-white rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.2)] overflow-hidden relative z-10">
+          <div className="p-8 sm:p-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-extrabold text-gray-800 mb-2 tracking-tight">
+                アカウント作成
+              </h2>
+              <p className="text-sm text-gray-500 mt-2">
+                あなたのプロフィールを設定しましょう
+              </p>
+            </div>
 
-          {error && <AlertMessage message={error} type="error" />}
+            {error && <AlertMessage message={error} type="error" />}
 
-          <div className="block">
             <div className="flex flex-col gap-5">
               <ProfileImageUpload
                 imagePreview={imagePreview}
@@ -221,27 +221,23 @@ const NewUserPage = () => {
             </div>
           </div>
         </div>
+
+        {showSuccess && (
+          <SuccessToast
+            title="アカウント作成完了!"
+            message="ようこそ!まもなくホーム画面に移動します。"
+            position="center"
+            showProgress
+          />
+        )}
+
+        <style>{`
+          @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
+          }
+        `}</style>
       </div>
-
-      {showSuccess && (
-        <SuccessToast
-          title="アカウント作成完了!"
-          message="ようこそ!まもなくホーム画面に移動します。"
-          position="center"
-          showProgress
-        />
-      )}
-
-      <style>{`
-        @keyframes progress {
-          from {
-            width: 0%;
-          }
-          to {
-            width: 100%;
-          }
-        }
-      `}</style>
     </div>
   );
 };
