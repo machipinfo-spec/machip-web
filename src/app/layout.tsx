@@ -4,6 +4,7 @@ import "./globals.css";
 import { ProfileProvider } from "@/src/contexts/ProfileContext";
 import { InboxProvider } from "@/src/contexts/InboxContext";
 import FCMHandler from "@/src/components/FCMHandler";
+import SplashScreen from "@/src/components/SplashScreen";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +49,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} font-sans text-gray-900 flex flex-col md:flex-row select-none bg-white md:bg-gray-50 overflow-hidden antialiased`}
         style={{ height: "100dvh" }}
       >
+        <SplashScreen />
         <ProfileProvider>
           <InboxProvider>
             <FCMHandler />
