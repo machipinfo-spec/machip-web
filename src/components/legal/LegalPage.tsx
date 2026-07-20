@@ -13,7 +13,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
   children,
 }) => {
   return (
-    <div className="min-h-screen bg-brand-pale">
+    <div className="flex-1 h-full overflow-y-auto bg-brand-pale select-text">
       <header className="bg-gradient-to-r from-brand to-brand-mid px-6 py-10">
         <div className="max-w-3xl mx-auto">
           <Link
