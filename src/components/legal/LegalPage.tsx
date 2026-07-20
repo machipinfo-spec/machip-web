@@ -40,7 +40,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         {toc && toc.length > 0 && (
           <nav className="bg-white rounded-2xl shadow-sm px-6 py-5 sm:px-10 mb-6">
             <p className="text-sm font-bold text-gray-800 mb-2">目次</p>
-            <ol className="list-decimal pl-5 flex flex-col gap-1">
+            <ol className="list-none pl-0 flex flex-col gap-1">
               {toc.map((item) => (
                 <li key={item.id}>
                   <a
