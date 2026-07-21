@@ -37,47 +37,12 @@ html, body {
 .sheet-out { animation: slideDown .22s cubic-bezier(.32,.72,0,1) both; }
 .fade-in { animation: fadeIn .18s ease both; }
 
-/* Splash: the dot pops in first (splashDotIn), the blob blooms out from
-   beneath it with a jelly wobble (splashBlobGrow), the shadow fades in,
-   then the "Machip" text pops up. */
-@keyframes splashDotIn {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.35); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-@keyframes splashBlobGrow {
-  0% { transform: scale(0) rotate(10deg); }
-  55% { transform: scale(1.12, .95) rotate(4deg); }
-  72% { transform: scale(.95, 1.06) rotate(-2deg); }
-  86% { transform: scale(1.03, .98) rotate(1deg); }
-  100% { transform: scale(1, 1) rotate(0deg); }
-}
-@keyframes splashShadowFade {
-  from { transform: scale(.5); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-@keyframes splashTextUp {
-  0% { opacity: 0; transform: translateY(10px) scale(.9); }
-  60% { opacity: 1; transform: translateY(-2px) scale(1.03); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
+/* Splash: the intro video plays on a white overlay, then fades to the app. */
 @keyframes splashOut {
   from { opacity: 1; }
   to { opacity: 0; }
 }
-.splash-dot {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: splashDotIn .3s cubic-bezier(.34, 1.56, .64, 1) both;
-}
-.splash-blob {
-  transform-box: fill-box;
-  transform-origin: 85% 5%;
-  animation: splashBlobGrow .75s cubic-bezier(.34, 1.3, .5, 1) .18s both;
-}
-.splash-shadow { animation: splashShadowFade .4s ease-out .45s both; }
-.splash-text { animation: splashTextUp .4s cubic-bezier(.34, 1.4, .64, 1) .85s both; }
-.splash-screen-out { animation: splashOut .38s ease forwards; }
+.splash-screen-out { animation: splashOut .4s ease forwards; }
 
 input, textarea {
   font-family: inherit;
