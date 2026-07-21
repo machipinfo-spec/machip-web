@@ -37,6 +37,13 @@ html, body {
 .sheet-out { animation: slideDown .22s cubic-bezier(.32,.72,0,1) both; }
 .fade-in { animation: fadeIn .18s ease both; }
 
+/* Splash: the intro video plays on a white overlay, then fades to the app. */
+@keyframes splashOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.splash-screen-out { animation: splashOut .4s ease forwards; }
+
 input, textarea {
   font-family: inherit;
 }
