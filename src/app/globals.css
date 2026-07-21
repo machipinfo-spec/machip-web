@@ -37,55 +37,46 @@ html, body {
 .sheet-out { animation: slideDown .22s cubic-bezier(.32,.72,0,1) both; }
 .fade-in { animation: fadeIn .18s ease both; }
 
-/* Splash: blob falls (splashFall) while stretched, squashes on impact and
-   bounces (splashSquash), shadow tracks the bounces, then the dot pops in. */
-@keyframes splashFall {
-  from { transform: translateY(-48vh); }
-  to { transform: translateY(0); }
-}
-@keyframes splashSquash {
-  0%, 38% { transform: scale(.93, 1.07); }
-  48% { transform: scale(1.22, .78); }
-  60% { transform: scale(.92, 1.1); }
-  70% { transform: scale(1.08, .94); }
-  80% { transform: scale(.97, 1.03); }
-  90% { transform: scale(1.02, .99); }
-  100% { transform: scale(1, 1); }
-}
-@keyframes splashShadowIn {
-  0% { transform: scale(.4); opacity: 0; }
-  38% { transform: scale(.7); opacity: .5; }
-  48% { transform: scale(1.18); opacity: 1; }
-  60% { transform: scale(.88); }
-  70% { transform: scale(1.06); }
-  100% { transform: scale(1); opacity: 1; }
-}
-@keyframes splashDotPop {
+/* Splash: the dot pops in first (splashDotIn), the blob blooms out from
+   beneath it with a jelly wobble (splashBlobGrow), the shadow fades in,
+   then the "Machip" text pops up. */
+@keyframes splashDotIn {
   0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.25); opacity: 1; }
+  60% { transform: scale(1.35); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
+}
+@keyframes splashBlobGrow {
+  0% { transform: scale(0) rotate(10deg); }
+  55% { transform: scale(1.12, .95) rotate(4deg); }
+  72% { transform: scale(.95, 1.06) rotate(-2deg); }
+  86% { transform: scale(1.03, .98) rotate(1deg); }
+  100% { transform: scale(1, 1) rotate(0deg); }
+}
+@keyframes splashShadowFade {
+  from { transform: scale(.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 @keyframes splashTextUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  0% { opacity: 0; transform: translateY(10px) scale(.9); }
+  60% { opacity: 1; transform: translateY(-2px) scale(1.03); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes splashOut {
   from { opacity: 1; }
   to { opacity: 0; }
 }
-.splash-fall { animation: splashFall .55s cubic-bezier(.5, 0, .9, .6) both; }
-.splash-blob {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: splashSquash 1.15s both;
-}
-.splash-shadow { animation: splashShadowIn 1.15s both; }
 .splash-dot {
   transform-box: fill-box;
   transform-origin: center;
-  animation: splashDotPop .38s cubic-bezier(.34, 1.56, .64, 1) 1.02s both;
+  animation: splashDotIn .3s cubic-bezier(.34, 1.56, .64, 1) both;
 }
-.splash-text { animation: splashTextUp .45s ease .95s both; }
+.splash-blob {
+  transform-box: fill-box;
+  transform-origin: 85% 5%;
+  animation: splashBlobGrow .75s cubic-bezier(.34, 1.3, .5, 1) .18s both;
+}
+.splash-shadow { animation: splashShadowFade .4s ease-out .45s both; }
+.splash-text { animation: splashTextUp .4s cubic-bezier(.34, 1.4, .64, 1) .85s both; }
 .splash-screen-out { animation: splashOut .38s ease forwards; }
 
 input, textarea {

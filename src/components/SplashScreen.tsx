@@ -5,9 +5,10 @@ import { Quicksand } from "next/font/google";
 
 const quicksand = Quicksand({ subsets: ["latin"], weight: ["600"] });
 
-// Timeline: fall lands ~550ms, bounces settle ~1150ms, dot pops ~1400ms,
-// text finishes ~1400ms. Hold until HOLD_MS, then fade out over FADE_MS.
-const HOLD_MS = 2100;
+// Timeline: dot pops in ~300ms, blob blooms out beneath it ~180-930ms,
+// shadow fades in ~450-850ms, text pops ~850-1250ms. Hold until HOLD_MS,
+// then fade out over FADE_MS.
+const HOLD_MS = 2000;
 const FADE_MS = 380;
 
 export default function SplashScreen() {
@@ -33,7 +34,7 @@ export default function SplashScreen() {
     >
       <div className="relative w-[130px] h-[146px]">
         <div className="splash-shadow absolute bottom-0 left-1/2 -ml-[38px] w-[76px] h-[11px] rounded-full bg-[#DEDAD3]" />
-        <div className="splash-fall absolute top-0 left-0 w-[130px] h-[130px]">
+        <div className="absolute top-0 left-0 w-[130px] h-[130px]">
           <svg viewBox="0 -7 200 207" className="w-full h-full">
             <path
               className="splash-blob"
