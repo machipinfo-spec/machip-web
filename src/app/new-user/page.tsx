@@ -20,6 +20,7 @@ const NewUserPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   const { imagePreview, handleImageChange, handleImageRemove, getImageFile } =
     useImageUpload();
@@ -138,21 +139,21 @@ const NewUserPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-500 p-4 relative">
-      <div className="max-w-[480px] w-full bg-white rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.2)] overflow-hidden relative z-10">
-        <div className="p-8 sm:p-6">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold text-gray-800 mb-2 tracking-tight">
-              アカウント作成
-            </h2>
-            <p className="text-sm text-gray-500 mt-2">
-              あなたのプロフィールを設定しましょう
-            </p>
-          </div>
+    <div className="flex-1 h-full overflow-y-auto bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-500 relative">
+      <div className="min-h-full flex items-center justify-center p-4">
+        <div className="max-w-[480px] w-full bg-white rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.2)] overflow-hidden relative z-10">
+          <div className="p-8 sm:p-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-extrabold text-gray-800 mb-2 tracking-tight">
+                アカウント作成
+              </h2>
+              <p className="text-sm text-gray-500 mt-2">
+                あなたのプロフィールを設定しましょう
+              </p>
+            </div>
 
-          {error && <AlertMessage message={error} type="error" />}
+            {error && <AlertMessage message={error} type="error" />}
 
-          <div className="block">
             <div className="flex flex-col gap-5">
               <ProfileImageUpload
                 imagePreview={imagePreview}
@@ -199,13 +200,42 @@ const NewUserPage = () => {
                 placeholder="あなたについて簡単に教えてください..."
               />
 
-              <div className="pt-4">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-1 h-4 w-4 accent-indigo-600 cursor-pointer"
+                />
+                <span className="text-sm text-gray-600 leading-6">
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 underline hover:text-indigo-800"
+                  >
+                    利用規約
+                  </a>
+                  と
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 underline hover:text-indigo-800"
+                  >
+                    プライバシーポリシー
+                  </a>
+                  に同意します
+                </span>
+              </label>
+
+              <div className="pt-2">
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isLoading}
+                  disabled={isLoading || !agreed}
                   className={`w-full flex justify-center items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-700 border-0 rounded-lg shadow-md cursor-pointer transition-[background,transform] duration-200 hover:from-indigo-700 hover:to-purple-800 hover:-translate-y-0.5 focus:outline-none focus:ring-3 focus:ring-indigo-600/40 active:translate-y-0.5 ${
-                    isLoading ? "opacity-70 cursor-not-allowed" : ""
+                    isLoading || !agreed ? "opacity-70 cursor-not-allowed" : ""
                   }`}
                 >
                   {isLoading ? (
@@ -221,27 +251,23 @@ const NewUserPage = () => {
             </div>
           </div>
         </div>
+
+        {showSuccess && (
+          <SuccessToast
+            title="アカウント作成完了!"
+            message="ようこそ!まもなくホーム画面に移動します。"
+            position="center"
+            showProgress
+          />
+        )}
+
+        <style>{`
+          @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
+          }
+        `}</style>
       </div>
-
-      {showSuccess && (
-        <SuccessToast
-          title="アカウント作成完了!"
-          message="ようこそ!まもなくホーム画面に移動します。"
-          position="center"
-          showProgress
-        />
-      )}
-
-      <style>{`
-        @keyframes progress {
-          from {
-            width: 0%;
-          }
-          to {
-            width: 100%;
-          }
-        }
-      `}</style>
     </div>
   );
 };
