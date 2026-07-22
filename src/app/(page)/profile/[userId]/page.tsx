@@ -14,6 +14,7 @@ import { useBookmarks } from "@/src/features/user/hooks/useBookmarks";
 import { useFollow } from "@/src/features/user/hooks/useFollow";
 import { useTimeline } from "@/src/features/timeline/hooks/useTimeline";
 import { ThreadCard } from "@/src/features/thread/components/ThreadCard";
+import { MfaSetup } from "@/src/features/user/components/MfaSetup";
 
 const ProfilePage: React.FC = () => {
   const params = useParams();
@@ -340,6 +341,7 @@ const ProfilePage: React.FC = () => {
                 )}
               </div>
             </div>
+            <MfaSetup />
             <div className="h-4"></div>
           </div>
         </>

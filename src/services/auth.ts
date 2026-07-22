@@ -126,7 +126,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       clientSecret: cognitoClientSecret,
       authorization: {
         params: {
-          scope: "openid email",
+          // aws.cognito.signin.user.admin: 電話番号検証・MFA設定のユーザーAPI呼び出しに必要
+          scope: "openid email aws.cognito.signin.user.admin",
         },
       },
     }),

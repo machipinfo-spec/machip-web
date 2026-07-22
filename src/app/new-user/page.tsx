@@ -8,6 +8,11 @@ import { ProfileImageUpload } from "@/src/features/user/components/ProfileImageU
 import { SuccessToast } from "@/src/features/user/components/SuccessToast";
 import { useImageUpload } from "@/src/features/user/hooks/useImageUpload";
 import { useS3Upload } from "@/src/features/upload/hooks/useS3Upload";
+import { PhoneVerification } from "@/src/features/user/components/PhoneVerification";
+
+// SMS認証を必須にするか(AWS側のSMS配信が有効になるまではオプション運用)
+const PHONE_REQUIRED =
+  process.env.NEXT_PUBLIC_REQUIRE_PHONE_VERIFICATION === "true";
 
 interface UserData {
   nickname: string;
@@ -21,6 +26,7 @@ const NewUserPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
 
   const { imagePreview, handleImageChange, handleImageRemove, getImageFile } =
     useImageUpload();
@@ -64,6 +70,9 @@ const NewUserPage = () => {
     try {
       if (!userData.nickname.trim()) {
         throw new Error("ニックネームを入力してください");
+      }
+      if (PHONE_REQUIRED && !phoneVerified) {
+        throw new Error("電話番号のSMS認証を完了してください");
       }
 
       const token = await getAuthToken();
@@ -200,6 +209,8 @@ const NewUserPage = () => {
                 placeholder="あなたについて簡単に教えてください..."
               />
 
+              <PhoneVerification onVerified={() => setPhoneVerified(true)} />
+
               <label className="flex items-start gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -233,9 +244,13 @@ const NewUserPage = () => {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isLoading || !agreed}
+                  disabled={
+                    isLoading || !agreed || (PHONE_REQUIRED && !phoneVerified)
+                  }
                   className={`w-full flex justify-center items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-700 border-0 rounded-lg shadow-md cursor-pointer transition-[background,transform] duration-200 hover:from-indigo-700 hover:to-purple-800 hover:-translate-y-0.5 focus:outline-none focus:ring-3 focus:ring-indigo-600/40 active:translate-y-0.5 ${
-                    isLoading || !agreed ? "opacity-70 cursor-not-allowed" : ""
+                    isLoading || !agreed || (PHONE_REQUIRED && !phoneVerified)
+                      ? "opacity-70 cursor-not-allowed"
+                      : ""
                   }`}
                 >
                   {isLoading ? (
