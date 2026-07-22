@@ -55,6 +55,14 @@ export const MapClient: React.FC<MapClientProps> = ({ zoom }) => {
     mapRef.current = map;
   }, []);
 
+  // ピンや詳細ダイアログへのクリック/ジェスチャーがマップ本体のクリック
+  // (=ピン作成フロー)として二重に発火しないようにする
+  const preventMapHits = React.useCallback((el: HTMLDivElement | null) => {
+    if (el) {
+      google.maps.OverlayView.preventMapHitsAndGesturesFrom(el);
+    }
+  }, []);
+
   useEffect(() => {
     getPoints().then(setPoints);
   }, [session, setPoints]);
@@ -159,8 +167,9 @@ export const MapClient: React.FC<MapClientProps> = ({ zoom }) => {
                   position={{ lat: p.lat, lng: p.lng }}
                   mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
                 >
-                  <div 
-                    className="map-pin-wrap" 
+                  <div
+                    ref={preventMapHits}
+                    className="map-pin-wrap"
                     onClick={() => handleMarkerClick(p)}
                   >
                     <div className="bg-white rounded-md shadow px-1.5 py-0.5 text-[10px] font-bold mb-1 whitespace-nowrap">
@@ -176,7 +185,10 @@ export const MapClient: React.FC<MapClientProps> = ({ zoom }) => {
                     position={{ lat: p.lat, lng: p.lng }}
                     mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
                   >
-                    <div style={{ transform: "translate(20px, -50%)" }}>
+                    <div
+                      ref={preventMapHits}
+                      style={{ transform: "translate(20px, -50%)" }}
+                    >
                       <MarkerDetailDialog
                         point={p}
                         isOpen={pinDetailModalOpen}
